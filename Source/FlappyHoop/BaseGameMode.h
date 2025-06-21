@@ -18,7 +18,11 @@ public:
 
 	virtual FOnGameStarted& OnGameStartedDelegate() override { return OnGameStarted; }
 
-	virtual FOnViewportFetched& OnFOnViewportFetchedDelegate() { return OnViewportFetched; }
+	virtual FOnViewportFetched& OnViewportFetchedDelegate() { return OnViewportFetched; }
+
+	virtual FOnGameReset& OnGameResetDelegate() { return OnGameReset; }
+
+	virtual void ResetGame() override;
 
 protected:
 
@@ -36,6 +40,8 @@ private:
 	FOnGameStarted OnGameStarted;
 
 	FOnViewportFetched OnViewportFetched;
+
+	FOnGameReset OnGameReset;
 
 	void FetchViewportSize();
 

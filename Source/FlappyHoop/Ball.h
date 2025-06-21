@@ -49,8 +49,11 @@ private:
 	bool HandleScreenWrap(FVector& Location);
 
 	float YLocation = -500.0f;
+	FVector InitialBallLocation;
+	FVector InitialBallVelocity;
 
 	IGameModeInterface* GameModeInterface = nullptr;
 
 	void ActivateBall();
+	void ResetBall();
 };

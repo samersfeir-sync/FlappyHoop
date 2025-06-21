@@ -11,18 +11,29 @@ AMyPlayerController::AMyPlayerController()
 {
 	bEnableTouchEvents = true;
 	bShowMouseCursor = true;
+    DisableInput(this);
 }
 
 void AMyPlayerController::BeginPlay()
 {
     Super::BeginPlay();
-		
-	Ball = Cast<ABall>(UGameplayStatics::GetActorOfClass(GetWorld(), ABall::StaticClass()));
 
+    Ball = Cast<ABall>(UGameplayStatics::GetActorOfClass(GetWorld(), ABall::StaticClass()));
 
     if (IGameModeInterface* GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this))
     {
-        GameModeInterface->OnGameStartedDelegate().AddUObject(this, &AMyPlayerController::SetupInput);
+        GameModeInterface->OnGameStartedDelegate().AddUObject(this, &AMyPlayerController::EnableControllerInput);
+        GameModeInterface->OnGameResetDelegate().AddUObject(this, &AMyPlayerController::DisableControllerInput);
+    }
+}
+
+void AMyPlayerController::SetupInputComponent()
+{
+    Super::SetupInputComponent();
+
+    if (InputComponent)
+    {
+        InputComponent->BindTouch(IE_Pressed, this, &AMyPlayerController::HandleTouchPressed);
     }
 }
 
@@ -34,10 +45,12 @@ void AMyPlayerController::HandleTouchPressed(ETouchIndex::Type FingerIndex, FVec
     }
 }
 
-void AMyPlayerController::SetupInput()
+void AMyPlayerController::EnableControllerInput()
 {
-    if (InputComponent)
-    {
-        InputComponent->BindTouch(IE_Pressed, this, &AMyPlayerController::HandleTouchPressed);
-    }
+    EnableInput(this);
+}
+
+void AMyPlayerController::DisableControllerInput()
+{
+    DisableInput(this);
 }

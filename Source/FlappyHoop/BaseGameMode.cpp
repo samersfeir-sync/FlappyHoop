@@ -5,6 +5,14 @@
 #include "Kismet/Gameplaystatics.h"
 #include "GameWidget.h"
 
+void ABaseGameMode::ResetGame()
+{
+	UGameplayStatics::SetGamePaused(World, false);
+	OnGameReset.Broadcast();
+
+	//reset variables associated with gamemode here
+}
+
 void ABaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -16,6 +24,7 @@ void ABaseGameMode::BeginPlay()
 
 	if (GameWidgetInstance)
 	{
+		GameWidgetInstance->SetWorldReference(World);
 		GameWidgetInstance->AddToViewport();
 	}
 }

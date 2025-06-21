@@ -6,9 +6,6 @@
 #include "GameFramework/PlayerController.h"
 #include "MyPlayerController.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class FLAPPYHOOP_API AMyPlayerController : public APlayerController
 {
@@ -22,10 +19,14 @@ private:
 
 	virtual void BeginPlay() override;
 
+	virtual void SetupInputComponent() override;
+
 	UFUNCTION()
 	void HandleTouchPressed(ETouchIndex::Type FingerIndex, FVector Location);
 
 	class ABall* Ball = nullptr;
 
-	void SetupInput();
+	void EnableControllerInput();
+	void DisableControllerInput();
+
 };

@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Components/HorizontalBox.h"
+#include "Components/Border.h"
 #include "GameModeInterface.h"
 #include "FunctionsLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -20,39 +21,81 @@ void UGameWidget::NativeConstruct()
 	if (GameModeInterface)
 	{
 		PlayButton->OnClicked.AddDynamic(this, &UGameWidget::OnPlayClicked);
-		GameModeInterface->OnFOnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
+		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
 	}
 
+	PauseButton->OnClicked.AddDynamic(this, &UGameWidget::PauseGame);
+	ResumeButton->OnClicked.AddDynamic(this, &UGameWidget::ResumeGame);
+	HomeButton->OnClicked.AddDynamic(this, &UGameWidget::ReturnToMainMenu);
 	QuitButton->OnClicked.AddDynamic(this, &UGameWidget::QuitGame);
 }
 
 void UGameWidget::OnPlayClicked()
 {
 	GameModeInterface->OnGameStartedDelegate().Broadcast();
-
-	PlayButton->SetVisibility(ESlateVisibility::Hidden);
-	QuitButton->SetVisibility(ESlateVisibility::Hidden);
-	ShopButton->SetVisibility(ESlateVisibility::Hidden);
-	HighScoreText->SetVisibility(ESlateVisibility::Hidden);
-
-	PauseButton->SetVisibility(ESlateVisibility::Visible);
-	TimeProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
-	CoinsBox->SetVisibility(ESlateVisibility::HitTestInvisible);
-	ScoreText->SetVisibility(ESlateVisibility::HitTestInvisible);
+	ApplyWidgetState(EWidgetState::Playing);
 }
 
 void UGameWidget::QuitGame()
 {
-	UWorld* World = GetWorld();
-	if (!World) return;
-
 	APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
-	if (!PC) return;
 
 	UKismetSystemLibrary::QuitGame(World, PC, EQuitPreference::Quit, true);
+}
+
+void UGameWidget::PauseGame()
+{
+	UGameplayStatics::SetGamePaused(World, true);
+	BlackBorder->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UGameWidget::ResumeGame()
+{
+	UGameplayStatics::SetGamePaused(World, false);
+	BlackBorder->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UGameWidget::ReturnToMainMenu()
+{
+	GameModeInterface->ResetGame();
+	ApplyWidgetState(EWidgetState::MainMenu);
 }
 
 void UGameWidget::EnablePlayButton()
 {
 	PlayButton->SetIsEnabled(true);
+}
+
+void UGameWidget::ApplyWidgetState(EWidgetState NewState)
+{
+	switch (NewState)
+	{
+	case EWidgetState::MainMenu:
+		PlayButton->SetVisibility(ESlateVisibility::Visible);
+		QuitButton->SetVisibility(ESlateVisibility::Visible);
+		ShopButton->SetVisibility(ESlateVisibility::Visible);
+		HighScoreText->SetVisibility(ESlateVisibility::Visible);
+
+		PauseButton->SetVisibility(ESlateVisibility::Hidden);
+		TimeProgressBar->SetVisibility(ESlateVisibility::Hidden);
+		CoinsBox->SetVisibility(ESlateVisibility::Hidden);
+		ScoreText->SetVisibility(ESlateVisibility::Hidden);
+		BlackBorder->SetVisibility(ESlateVisibility::Hidden);
+		break;
+
+	case EWidgetState::Playing:
+		PlayButton->SetVisibility(ESlateVisibility::Hidden);
+		QuitButton->SetVisibility(ESlateVisibility::Hidden);
+		ShopButton->SetVisibility(ESlateVisibility::Hidden);
+		HighScoreText->SetVisibility(ESlateVisibility::Hidden);
+
+		PauseButton->SetVisibility(ESlateVisibility::Visible);
+		TimeProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
+		CoinsBox->SetVisibility(ESlateVisibility::HitTestInvisible);
+		ScoreText->SetVisibility(ESlateVisibility::HitTestInvisible);
+		break;
+
+	default:
+		break;
+	}
 }

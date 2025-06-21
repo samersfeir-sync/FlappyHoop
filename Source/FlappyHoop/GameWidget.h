@@ -10,12 +10,24 @@ class UButton;
 class UTextBlock;
 class UProgressBar;
 class UHorizontalBox;
+class UBorder;
 class IGameModeInterface;
+
+UENUM(BlueprintType)
+enum class EWidgetState : uint8
+{
+	MainMenu	UMETA(DisplayName = "Main Menu"),
+	Playing		UMETA(DisplayName = "Playing"),
+};
 
 UCLASS()
 class FLAPPYHOOP_API UGameWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+
+	FORCEINLINE void SetWorldReference(UWorld* NewWorld) { World = NewWorld; }
 
 protected:
 
@@ -39,6 +51,12 @@ private:
 	UButton* PauseButton;
 
 	UPROPERTY(meta = (BindWidget))
+	UButton* HomeButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* ResumeButton;
+
+	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CoinsText;
 
 	UPROPERTY(meta = (BindWidget))
@@ -50,13 +68,29 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ScoreText;
 
+	UPROPERTY(meta = (BindWidget))
+	UBorder* BlackBorder;
+
 	UFUNCTION()
 	void OnPlayClicked();
 
 	UFUNCTION()
 	void QuitGame();
 
+	UFUNCTION()
+	void PauseGame();
+
+	UFUNCTION()
+	void ResumeGame();
+
+	UFUNCTION()
+	void ReturnToMainMenu();
+
 	void EnablePlayButton();
 
 	IGameModeInterface* GameModeInterface = nullptr;
+
+	UWorld* World = nullptr;
+
+	void ApplyWidgetState(EWidgetState NewState);
 };

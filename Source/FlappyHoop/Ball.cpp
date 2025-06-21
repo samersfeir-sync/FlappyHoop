@@ -40,19 +40,23 @@ void ABall::BeginPlay()
 {
 	Super::BeginPlay();
 
+    InitialBallLocation = GetActorLocation();
+    YLocation = InitialBallLocation.Y;
+    InitialBallVelocity = ProjectileMovement->Velocity;
+
     PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
     if (PlayerController)
     {
         CameraManager = PlayerController->PlayerCameraManager;
     }
 
-    YLocation = GetActorLocation().Y;
 
     GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
     if (GameModeInterface)
     {
         GameModeInterface->OnGameStartedDelegate().AddUObject(this, &ABall::ActivateBall);
+        GameModeInterface->OnGameResetDelegate().AddUObject(this, &ABall::ResetBall);
     }
 }
 
@@ -125,4 +129,12 @@ void ABall::ActivateBall()
 {
     SetActorHiddenInGame(false);
     ProjectileMovement->Activate(true);
+}
+
+void ABall::ResetBall()
+{
+    SetActorLocation(InitialBallLocation);
+    ProjectileMovement->Velocity = InitialBallVelocity;
+    SetActorHiddenInGame(true);
+    ProjectileMovement->Deactivate();
 }

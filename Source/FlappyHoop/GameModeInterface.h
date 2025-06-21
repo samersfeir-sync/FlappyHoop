@@ -15,6 +15,7 @@ class UGameModeInterface : public UInterface
 
 DECLARE_MULTICAST_DELEGATE(FOnGameStarted);
 DECLARE_MULTICAST_DELEGATE(FOnViewportFetched);
+DECLARE_MULTICAST_DELEGATE(FOnGameReset);
 
 class FLAPPYHOOP_API IGameModeInterface
 {
@@ -24,6 +25,8 @@ class FLAPPYHOOP_API IGameModeInterface
 public:
 
 	virtual FOnGameStarted& OnGameStartedDelegate() = 0;
-	virtual FOnViewportFetched& OnFOnViewportFetchedDelegate() = 0;
+	virtual FOnViewportFetched& OnViewportFetchedDelegate() = 0;
+	virtual FOnGameReset& OnGameResetDelegate() = 0;
 	virtual FVector2D GetViewportSize() const = 0;
+	virtual void ResetGame() = 0;
 };

@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Ball.generated.h"
 
+class IGameModeInterface;
+
 UCLASS()
 class FLAPPYHOOP_API ABall : public AActor
 {
@@ -34,8 +36,21 @@ private:
 	class UProjectileMovementComponent* ProjectileMovement;
 
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-	float HorizontalImpulse = -500.0f;
+	float HorizontalImpulse = 500.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Parameters")
 	float VerticalImpulse = 800.0f;
+
+	int Direction = -1;
+
+	APlayerController* PlayerController = nullptr;
+	APlayerCameraManager* CameraManager = nullptr;
+
+	bool HandleScreenWrap(FVector& Location);
+
+	float YLocation = -500.0f;
+
+	IGameModeInterface* GameModeInterface = nullptr;
+
+	void ActivateBall();
 };

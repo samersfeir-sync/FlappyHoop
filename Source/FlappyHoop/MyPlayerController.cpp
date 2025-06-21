@@ -4,6 +4,8 @@
 #include "MyPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Ball.h"
+#include "FunctionsLibrary.h"
+#include "GameModeInterface.h"
 
 AMyPlayerController::AMyPlayerController()
 {
@@ -16,15 +18,11 @@ void AMyPlayerController::BeginPlay()
     Super::BeginPlay();
 		
 	Ball = Cast<ABall>(UGameplayStatics::GetActorOfClass(GetWorld(), ABall::StaticClass()));
-}
 
-void AMyPlayerController::SetupInputComponent()
-{
-    Super::SetupInputComponent();
 
-    if (InputComponent)
+    if (IGameModeInterface* GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this))
     {
-        InputComponent->BindTouch(IE_Pressed, this, &AMyPlayerController::HandleTouchPressed);
+        GameModeInterface->OnGameStartedDelegate().AddUObject(this, &AMyPlayerController::SetupInput);
     }
 }
 
@@ -33,5 +31,13 @@ void AMyPlayerController::HandleTouchPressed(ETouchIndex::Type FingerIndex, FVec
     if (Ball)
     {
         Ball->LaunchBall();
+    }
+}
+
+void AMyPlayerController::SetupInput()
+{
+    if (InputComponent)
+    {
+        InputComponent->BindTouch(IE_Pressed, this, &AMyPlayerController::HandleTouchPressed);
     }
 }

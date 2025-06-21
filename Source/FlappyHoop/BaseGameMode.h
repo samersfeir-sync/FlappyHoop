@@ -4,14 +4,42 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "GameModeInterface.h"
 #include "BaseGameMode.generated.h"
 
-/**
- * 
- */
+class UGameWidget;
+
 UCLASS()
-class FLAPPYHOOP_API ABaseGameMode : public AGameMode
+class FLAPPYHOOP_API ABaseGameMode : public AGameMode, public IGameModeInterface
 {
 	GENERATED_BODY()
-	
+
+public:
+
+	virtual FOnGameStarted& OnGameStartedDelegate() override { return OnGameStarted; }
+
+	virtual FOnViewportFetched& OnFOnViewportFetchedDelegate() { return OnViewportFetched; }
+
+protected:
+
+	virtual void BeginPlay() override;
+
+	virtual FVector2D GetViewportSize() const override { return ViewportSize; }
+
+private:
+
+	UGameWidget* GameWidgetInstance = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameWidget> GameWidgetClass;
+
+	FOnGameStarted OnGameStarted;
+
+	FOnViewportFetched OnViewportFetched;
+
+	void FetchViewportSize();
+
+	FVector2D ViewportSize;
+
+	UWorld* World = nullptr;
 };

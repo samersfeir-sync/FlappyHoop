@@ -22,10 +22,10 @@ private:
 
 	virtual void BeginPlay() override;
 
-	virtual void SetupInputComponent() override;
-
 	UFUNCTION()
 	void HandleTouchPressed(ETouchIndex::Type FingerIndex, FVector Location);
 
 	class ABall* Ball = nullptr;
+
+	void SetupInput();
 };

@@ -18,14 +18,13 @@ AHoop::AHoop()
 	ScoreCylinder->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	ScoreCylinder->SetCollisionResponseToAllChannels(ECR_Overlap);
 	ScoreCylinder->SetGenerateOverlapEvents(true);
-	ScoreCylinder->OnComponentBeginOverlap.AddDynamic(this, &AHoop::OnScoreCylinderOverlap);
+	ScoreCylinder->OnComponentEndOverlap.AddDynamic(this, &AHoop::OnScoreCylinderEndOverlap);
 }
 
 // Called when the game starts or when spawned
 void AHoop::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -34,8 +33,8 @@ void AHoop::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AHoop::OnScoreCylinderOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AHoop::OnScoreCylinderEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor && OtherActor->GetClass()->ImplementsInterface(UBallInterface::StaticClass()))
 	{
@@ -46,10 +45,7 @@ void AHoop::OnScoreCylinderOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 			if (BallVelocity.Z < 0)
 			{
 				BallInterface->ChangeBallDirection();
-
 			}
 		}
-
 	}
 }
-

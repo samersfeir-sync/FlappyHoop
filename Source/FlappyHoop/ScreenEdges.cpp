@@ -17,6 +17,21 @@ AScreenEdges::AScreenEdges()
 	RootComponent = EdgeMesh;
 	EdgeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	EdgeMesh->SetHiddenInGame(true);
+
+	HoopChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("HoopChild"));
+	HoopChild->SetupAttachment(EdgeMesh);
+
+	UpArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("UpArrow"));
+	UpArrow->SetupAttachment(EdgeMesh);
+	Arrows.Add(UpArrow);
+
+	MiddleArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("MiddleArrow"));
+	MiddleArrow->SetupAttachment(EdgeMesh);
+	Arrows.Add(MiddleArrow);
+
+	DownArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("DownArrow"));
+	DownArrow->SetupAttachment(EdgeMesh);
+	Arrows.Add(DownArrow);
 }
 
 // Called when the game starts or when spawned
@@ -30,12 +45,35 @@ void AScreenEdges::BeginPlay()
 	{
 		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &AScreenEdges::SetEdgeLocation);
 	}
+
+	ActivateEdge(!RightEdge);
 }
 
 // Called every frame
 void AScreenEdges::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AScreenEdges::ActivateEdge(bool bActivate)
+{
+	SetActorHiddenInGame(!bActivate);
+	AActor* ChildActor = HoopChild->GetChildActor();
+	ChildActor->SetActorEnableCollision(bActivate);
+
+	if (bActivate)
+	{
+		int32 Index = FMath::RandRange(0, Arrows.Num() - 1);
+		UArrowComponent* SelectedArrow = Arrows[Index];
+
+		if (SelectedArrow)
+		{
+			FVector ArrowLocation = SelectedArrow->GetComponentLocation();
+			FVector CurrentLocation = ChildActor->GetActorLocation();
+			FVector NewLocation = FVector(CurrentLocation.X, CurrentLocation.Y, ArrowLocation.Z);
+			ChildActor->SetActorLocation(NewLocation);
+		}
+	}
 }
 
 void AScreenEdges::GetCameraFrustumEdges(UCameraComponent* Camera, float Distance,

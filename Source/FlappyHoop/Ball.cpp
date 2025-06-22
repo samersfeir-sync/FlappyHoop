@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "FunctionsLibrary.h"
 #include "GameModeInterface.h"
+#include "ScreenEdges.h"
 
 // Sets default values
 ABall::ABall()
@@ -66,10 +67,14 @@ void ABall::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     FVector Location = GetActorLocation();
-    Location.Y = YLocation;
 
     if (HandleScreenWrap(Location))
     {
+        SetActorLocation(Location);
+    }
+    else
+    {
+        Location.Y = YLocation;
         SetActorLocation(Location);
     }
 }
@@ -82,6 +87,19 @@ void ABall::LaunchBall()
 		ProjectileMovement->Velocity = LaunchVelocity;
         ProjectileMovement->Activate(true);
 	}
+}
+
+FVector ABall::GetBallVelocity() const
+{
+    return  ProjectileMovement->Velocity;
+}
+
+void ABall::ChangeBallDirection()
+{
+    Direction *= -1;
+    bool bIsRight = (Direction == 1);
+    RightEdge->ActivateEdge(bIsRight);
+    LeftEdge->ActivateEdge(!bIsRight);
 }
 
 bool ABall::HandleScreenWrap(FVector& Location)

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/ArrowComponent.h"
 #include "ScreenEdges.generated.h"
 
 UCLASS()
@@ -23,6 +24,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void ActivateEdge(bool bActivate);
+
 private:
 
 	UPROPERTY(EditAnywhere, Category = "Components")
@@ -37,4 +40,18 @@ private:
 		FVector& LeftCenter, FVector& RightCenter);
 
 	void SetEdgeLocation();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UChildActorComponent* HoopChild;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UArrowComponent* UpArrow;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UArrowComponent* MiddleArrow;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UArrowComponent* DownArrow;
+
+	TArray<UArrowComponent*> Arrows;
 };

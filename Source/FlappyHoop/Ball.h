@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "BallInterface.h"
 #include "Ball.generated.h"
 
 class IGameModeInterface;
+class AScreenEdges;
 
 UCLASS()
-class FLAPPYHOOP_API ABall : public AActor
+class FLAPPYHOOP_API ABall : public AActor, public IBallInterface
 {
 	GENERATED_BODY()
 	
@@ -26,6 +28,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void LaunchBall();
+
+	virtual FORCEINLINE FVector GetBallVelocity() const override;
+	virtual FORCEINLINE void ChangeBallDirection() override;
 
 private:
 
@@ -56,4 +61,12 @@ private:
 
 	void ActivateBall();
 	void ResetBall();
+
+
+	UPROPERTY(EditInstanceOnly, Category = "Parameters")
+	AScreenEdges* LeftEdge;
+
+	UPROPERTY(EditInstanceOnly, Category = "Parameters")
+	AScreenEdges* RightEdge;
+
 };

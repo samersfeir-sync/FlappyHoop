@@ -51,8 +51,6 @@ private:
 	APlayerController* PlayerController = nullptr;
 	APlayerCameraManager* CameraManager = nullptr;
 
-	bool HandleScreenWrap(FVector& Location);
-
 	float YLocation = -500.0f;
 	FVector InitialBallLocation;
 	FVector InitialBallVelocity;

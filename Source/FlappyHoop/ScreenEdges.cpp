@@ -8,6 +8,8 @@
 #include "GameModeInterface.h"
 #include "Camera/CameraComponent.h"
 #include "Camera/CameraActor.h"
+#include "CameraMain.h"
+#include "Ball.h"
 
 // Sets default values
 AScreenEdges::AScreenEdges()
@@ -15,7 +17,8 @@ AScreenEdges::AScreenEdges()
 	PrimaryActorTick.bCanEverTick = false;
 	EdgeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EdgeMesh"));
 	RootComponent = EdgeMesh;
-	EdgeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	EdgeMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	EdgeMesh->SetCollisionResponseToAllChannels(ECR_Overlap);
 	EdgeMesh->SetHiddenInGame(true);
 
 	HoopChild = CreateDefaultSubobject<UChildActorComponent>(TEXT("HoopChild"));
@@ -41,11 +44,12 @@ void AScreenEdges::BeginPlay()
 {
 	Super::BeginPlay();
 
+	EdgeMesh->OnComponentBeginOverlap.AddDynamic(this, &AScreenEdges::OnEdgeMeshBeginOverlap);
+
 	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
 	if (GameModeInterface)
 	{
-		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &AScreenEdges::SetEdgeLocation);
 		GameModeInterface->OnGameStartedDelegate().AddUObject(this, &AScreenEdges::GameStarted);
 		GameModeInterface->OnGameResetDelegate().AddUObject(this, &AScreenEdges::ResetEdge);
 	}
@@ -60,6 +64,8 @@ void AScreenEdges::Tick(float DeltaTime)
 void AScreenEdges::ActivateEdge(bool bActivate)
 {
 	SetActorHiddenInGame(!bActivate);
+	SetActorEnableCollision(bActivate);
+
 	AActor* ChildActor = HoopChild->GetChildActor();
 
 	if (ChildActor)
@@ -82,50 +88,6 @@ void AScreenEdges::ActivateEdge(bool bActivate)
 	}
 }
 
-void AScreenEdges::GetCameraFrustumEdges(UCameraComponent* Camera, float Distance,
-	FVector& LeftCenter, FVector& RightCenter)
-{
-	FMinimalViewInfo CameraView;
-	Camera->GetCameraView(0.0f, CameraView);
-
-	float AspectRatio = CameraView.AspectRatio;
-	float FoV_Y = CameraView.FOV;
-
-	float HalfHeight = Distance * FMath::Tan(FMath::DegreesToRadians(FoV_Y) * 0.5f);
-	float HalfWidth = HalfHeight * AspectRatio;
-
-	FVector CameraForward = Camera->GetForwardVector();
-	FVector CameraRight = Camera->GetRightVector();
-	FVector CameraLocation = CameraView.Location;
-
-	FVector CenterAtDistance = CameraLocation + (CameraForward * Distance);
-	LeftCenter = CenterAtDistance - (CameraRight * HalfWidth);
-	RightCenter = CenterAtDistance + (CameraRight * HalfWidth);
-}
-
-void AScreenEdges::SetEdgeLocation()
-{
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-
-	AActor* ViewTarget = PlayerController->GetViewTarget();
-	ACameraActor* Camera = Cast<ACameraActor>(ViewTarget);
-
-	UCameraComponent* CameraComponent = Camera->GetCameraComponent();
-
-	FVector LeftCenter;
-	FVector RightCenter;
-
-	FVector2D ViewportSize = GameModeInterface->GetViewportSize();
-
-	float Distance = ViewportSize.X * 170.0f / 720.0f;
-	GetCameraFrustumEdges(CameraComponent, Distance, LeftCenter, RightCenter);
-
-	FVector TargetLocation = RightEdge ? RightCenter : LeftCenter;
-	TargetLocation.Y = -500.f; //align with ball Y position
-	TargetLocation.Z = 0.0f;
-	SetActorLocation(TargetLocation);
-}
-
 void AScreenEdges::GameStarted()
 {
 	ActivateEdge(!RightEdge);
@@ -134,4 +96,12 @@ void AScreenEdges::GameStarted()
 void AScreenEdges::ResetEdge()
 {
 	SetActorHiddenInGame(true);
+}
+
+void AScreenEdges::OnEdgeMeshBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	FVector BallLocation = Ball->GetActorLocation();
+	BallLocation.X = -BallLocation.X;
+	Ball->SetActorLocation(BallLocation);
 }

@@ -11,7 +11,7 @@
 // Sets default values
 ABall::ABall()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	BallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BallMesh"));
 	RootComponent = BallMesh;
@@ -65,18 +65,6 @@ void ABall::BeginPlay()
 void ABall::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    FVector Location = GetActorLocation();
-
-    if (HandleScreenWrap(Location))
-    {
-        SetActorLocation(Location);
-    }
-    else
-    {
-        Location.Y = YLocation;
-        SetActorLocation(Location);
-    }
 }
 
 void ABall::LaunchBall()
@@ -100,47 +88,6 @@ void ABall::ChangeBallDirection()
     bool bIsRight = (Direction == 1);
     RightEdge->ActivateEdge(bIsRight);
     LeftEdge->ActivateEdge(!bIsRight);
-}
-
-bool ABall::HandleScreenWrap(FVector& Location)
-{
-    if (!PlayerController || !CameraManager) return false;
-
-    FVector2D ScreenPosition;
-    PlayerController->ProjectWorldLocationToScreen(Location, ScreenPosition);
-
-    FVector2D ViewportSize;
-    GEngine->GameViewport->GetViewportSize(ViewportSize);
-
-    const float Buffer = 10.0f;
-    bool bTeleported = false;
-
-    if (ScreenPosition.X < -Buffer)
-    {
-        ScreenPosition.X = ViewportSize.X + Buffer;
-        bTeleported = true;
-    }
-    else if (ScreenPosition.X > ViewportSize.X + Buffer)
-    {
-        ScreenPosition.X = -Buffer;
-        bTeleported = true;
-    }
-
-    if (bTeleported)
-    {
-        FVector CameraLocation = CameraManager->GetCameraLocation();
-        FVector CameraForward = CameraManager->GetActorForwardVector();
-        float Distance = FVector::DotProduct(Location - CameraLocation, CameraForward);
-
-        FVector WorldLocation, WorldDirection;
-        PlayerController->DeprojectScreenPositionToWorld(ScreenPosition.X, ScreenPosition.Y, WorldLocation, WorldDirection);
-
-        FVector NewWorldPos = CameraLocation + WorldDirection.GetSafeNormal() * Distance;
-        NewWorldPos.Y = YLocation;
-        Location = NewWorldPos;
-    }
-
-    return bTeleported;
 }
 
 void ABall::ActivateBall()

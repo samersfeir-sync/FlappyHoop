@@ -36,11 +36,6 @@ private:
 
 	class IGameModeInterface* GameModeInterface = nullptr;
 
-	void GetCameraFrustumEdges(class UCameraComponent* Camera, float Distance,
-		FVector& LeftCenter, FVector& RightCenter);
-
-	void SetEdgeLocation();
-
 	void GameStarted();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
@@ -58,4 +53,11 @@ private:
 	TArray<UArrowComponent*> Arrows;
 
 	void ResetEdge();
+
+	UFUNCTION()
+	void OnEdgeMeshBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UPROPERTY(EditInstanceOnly, Category = "Parameters")
+	class ABall* Ball;
 };

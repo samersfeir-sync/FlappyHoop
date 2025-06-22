@@ -31,10 +31,10 @@ public:
 	virtual FOnGameReset& OnGameResetDelegate() = 0;
 	virtual FVector2D GetViewportSize() const = 0;
 	virtual void ResetGame() = 0;
-	virtual FORCEINLINE float GetMaxGameTime() const = 0;
-	virtual FORCEINLINE void SetNewGameTime() = 0;
+	virtual float GetMaxGameTime() const = 0;
+	virtual void SetNewGameTime() = 0;
 	virtual FOnPointScored& OnPointScoredDelegate() = 0;
-	virtual FORCEINLINE void UpdateScore() = 0;
-	virtual FORCEINLINE int GetCurrentScore() = 0;
+	virtual void UpdateScore() = 0;
+	virtual int GetCurrentScore() = 0;
 	virtual FOnTimeEnded& OnTimeEndedDelegate() = 0;
 };

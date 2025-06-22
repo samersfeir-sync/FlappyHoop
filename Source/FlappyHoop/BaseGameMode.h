@@ -24,15 +24,15 @@ public:
 
 	virtual void ResetGame() override;
 
-	virtual FORCEINLINE float GetMaxGameTime() const { return MaxGameTime; }
+	virtual float GetMaxGameTime() const { return MaxGameTime; }
 
-	virtual FORCEINLINE void SetNewGameTime();
+	virtual void SetNewGameTime();
 
 	virtual FOnPointScored& OnPointScoredDelegate() override { return OnPointScored; }
 
-	virtual FORCEINLINE void UpdateScore() override;
+	virtual void UpdateScore() override;
 
-	virtual FORCEINLINE int GetCurrentScore() override { return CurrentScore; }
+	virtual int GetCurrentScore() override { return CurrentScore; }
 
 	virtual FOnTimeEnded& OnTimeEndedDelegate() override { return OnTimeEnded; }
 

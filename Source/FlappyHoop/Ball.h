@@ -29,8 +29,8 @@ public:
 
 	void LaunchBall();
 
-	virtual FORCEINLINE FVector GetBallVelocity() const override;
-	virtual FORCEINLINE void ChangeBallDirection() override;
+	virtual FVector GetBallVelocity() const override;
+	virtual void ChangeBallDirection() override;
 
 private:
 

@@ -24,6 +24,18 @@ public:
 
 	virtual void ResetGame() override;
 
+	virtual FORCEINLINE float GetMaxGameTime() const { return MaxGameTime; }
+
+	virtual FORCEINLINE void SetNewGameTime();
+
+	virtual FOnPointScored& OnPointScoredDelegate() override { return OnPointScored; }
+
+	virtual FORCEINLINE void UpdateScore() override;
+
+	virtual FORCEINLINE int GetCurrentScore() override { return CurrentScore; }
+
+	virtual FOnTimeEnded& OnTimeEndedDelegate() override { return OnTimeEnded; }
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -48,4 +60,19 @@ private:
 	FVector2D ViewportSize;
 
 	UWorld* World = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Parameters")
+	float GameTimeReductionRate = 0.05f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Parameters")
+	float MaxGameTime = 10.0f;
+
+	float MaxGameTimeOriginal;
+
+	FOnPointScored OnPointScored;
+
+	int CurrentScore = 0;
+	int ScoreMultiplier = 1;
+
+	FOnTimeEnded OnTimeEnded;
 };

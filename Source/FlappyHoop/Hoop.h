@@ -37,4 +37,7 @@ private:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
+
+	class IGameModeInterface* GameModeInterface = nullptr;
+
 };

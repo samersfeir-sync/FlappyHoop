@@ -155,4 +155,5 @@ void ABall::ResetBall()
     ProjectileMovement->Velocity = InitialBallVelocity;
     SetActorHiddenInGame(true);
     ProjectileMovement->Deactivate();
+    Direction = -1;
 }

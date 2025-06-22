@@ -93,4 +93,16 @@ private:
 	UWorld* World = nullptr;
 
 	void ApplyWidgetState(EWidgetState NewState);
+
+	FTimerHandle GameTimer;
+
+	void StartTimer();
+	void UpdateProgressBar();
+
+	float ProgressStep;
+	float TickInterval = 0.01f;
+
+	void OnPointScored();
+	
+	void UpdateScoreUI(int NewScore);
 };

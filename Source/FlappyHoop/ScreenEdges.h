@@ -41,6 +41,8 @@ private:
 
 	void SetEdgeLocation();
 
+	void GameStarted();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UChildActorComponent* HoopChild;
 
@@ -54,4 +56,6 @@ private:
 	UArrowComponent* DownArrow;
 
 	TArray<UArrowComponent*> Arrows;
+
+	void ResetEdge();
 };

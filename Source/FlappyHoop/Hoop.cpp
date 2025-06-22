@@ -3,6 +3,8 @@
 
 #include "Hoop.h"
 #include "BallInterface.h"
+#include "GameModeInterface.h"
+#include "FunctionsLibrary.h"
 
 // Sets default values
 AHoop::AHoop()
@@ -18,13 +20,16 @@ AHoop::AHoop()
 	ScoreCylinder->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	ScoreCylinder->SetCollisionResponseToAllChannels(ECR_Overlap);
 	ScoreCylinder->SetGenerateOverlapEvents(true);
-	ScoreCylinder->OnComponentEndOverlap.AddDynamic(this, &AHoop::OnScoreCylinderEndOverlap);
 }
 
 // Called when the game starts or when spawned
 void AHoop::BeginPlay()
 {
 	Super::BeginPlay();
+	ScoreCylinder->OnComponentEndOverlap.AddDynamic(this, &AHoop::OnScoreCylinderEndOverlap);
+
+	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
+
 }
 
 // Called every frame
@@ -45,7 +50,15 @@ void AHoop::OnScoreCylinderEndOverlap(UPrimitiveComponent* OverlappedComponent, 
 			if (BallVelocity.Z < 0)
 			{
 				BallInterface->ChangeBallDirection();
+
+				if (GameModeInterface)
+				{
+					GameModeInterface->SetNewGameTime();
+					GameModeInterface->UpdateScore();
+					GameModeInterface->OnPointScoredDelegate().Broadcast();
+				}
 			}
 		}
 	}
 }
+

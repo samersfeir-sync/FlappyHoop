@@ -16,6 +16,8 @@ class UGameModeInterface : public UInterface
 DECLARE_MULTICAST_DELEGATE(FOnGameStarted);
 DECLARE_MULTICAST_DELEGATE(FOnViewportFetched);
 DECLARE_MULTICAST_DELEGATE(FOnGameReset);
+DECLARE_MULTICAST_DELEGATE(FOnPointScored);
+DECLARE_MULTICAST_DELEGATE(FOnTimeEnded);
 
 class FLAPPYHOOP_API IGameModeInterface
 {
@@ -29,4 +31,10 @@ public:
 	virtual FOnGameReset& OnGameResetDelegate() = 0;
 	virtual FVector2D GetViewportSize() const = 0;
 	virtual void ResetGame() = 0;
+	virtual FORCEINLINE float GetMaxGameTime() const = 0;
+	virtual FORCEINLINE void SetNewGameTime() = 0;
+	virtual FOnPointScored& OnPointScoredDelegate() = 0;
+	virtual FORCEINLINE void UpdateScore() = 0;
+	virtual FORCEINLINE int GetCurrentScore() = 0;
+	virtual FOnTimeEnded& OnTimeEndedDelegate() = 0;
 };

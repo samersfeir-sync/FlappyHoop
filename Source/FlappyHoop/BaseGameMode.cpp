@@ -9,8 +9,20 @@ void ABaseGameMode::ResetGame()
 {
 	UGameplayStatics::SetGamePaused(World, false);
 	OnGameReset.Broadcast();
+	MaxGameTime = MaxGameTimeOriginal;
+	CurrentScore = 0;
+}
 
-	//reset variables associated with gamemode here
+void ABaseGameMode::SetNewGameTime()
+{
+	const float Reduction = MaxGameTimeOriginal * GameTimeReductionRate;
+	MaxGameTime -= Reduction;
+	MaxGameTime = FMath::Max(MaxGameTime, 3.0f);
+}
+
+void ABaseGameMode::UpdateScore()
+{
+	CurrentScore += ScoreMultiplier;
 }
 
 void ABaseGameMode::BeginPlay()
@@ -27,6 +39,8 @@ void ABaseGameMode::BeginPlay()
 		GameWidgetInstance->SetWorldReference(World);
 		GameWidgetInstance->AddToViewport();
 	}
+	//cache variables that are set from the editor
+	MaxGameTimeOriginal = MaxGameTime;
 }
 
 void ABaseGameMode::FetchViewportSize()

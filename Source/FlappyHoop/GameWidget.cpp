@@ -22,6 +22,7 @@ void UGameWidget::NativeConstruct()
 	{
 		PlayButton->OnClicked.AddDynamic(this, &UGameWidget::OnPlayClicked);
 		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
+		GameModeInterface->OnPointScoredDelegate().AddUObject(this, &UGameWidget::OnPointScored);
 	}
 
 	PauseButton->OnClicked.AddDynamic(this, &UGameWidget::PauseGame);
@@ -34,6 +35,7 @@ void UGameWidget::OnPlayClicked()
 {
 	GameModeInterface->OnGameStartedDelegate().Broadcast();
 	ApplyWidgetState(EWidgetState::Playing);
+	StartTimer();
 }
 
 void UGameWidget::QuitGame()
@@ -59,6 +61,8 @@ void UGameWidget::ReturnToMainMenu()
 {
 	GameModeInterface->ResetGame();
 	ApplyWidgetState(EWidgetState::MainMenu);
+	UpdateScoreUI(0);
+	TimeProgressBar->SetPercent(1.0f);
 }
 
 void UGameWidget::EnablePlayButton()
@@ -98,4 +102,37 @@ void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 	default:
 		break;
 	}
+}
+
+void UGameWidget::StartTimer()
+{
+	World->GetTimerManager().SetTimer(GameTimer, this, &UGameWidget::UpdateProgressBar, TickInterval, true);
+}
+
+void UGameWidget::UpdateProgressBar()
+{
+	float CurrentPercent = TimeProgressBar->GetPercent();
+	ProgressStep = TickInterval / GameModeInterface->GetMaxGameTime();
+	CurrentPercent -= ProgressStep;
+	TimeProgressBar->SetPercent(FMath::Clamp(CurrentPercent, 0.0f, 1.0f));
+
+	if (CurrentPercent <= 0.0f)
+	{
+		CurrentPercent = 0.0f;
+		TimeProgressBar->SetPercent(CurrentPercent);
+		World->GetTimerManager().PauseTimer(GameTimer);
+		GameModeInterface->OnTimeEndedDelegate().Broadcast();
+	}
+}
+
+void UGameWidget::OnPointScored()
+{
+	TimeProgressBar->SetPercent(1.0f);
+	UpdateScoreUI(GameModeInterface->GetCurrentScore());
+	World->GetTimerManager().UnPauseTimer(GameTimer);
+}
+
+void UGameWidget::UpdateScoreUI(int NewScore)
+{
+	ScoreText->SetText(FText::AsNumber(NewScore));
 }

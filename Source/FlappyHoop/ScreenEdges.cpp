@@ -32,6 +32,8 @@ AScreenEdges::AScreenEdges()
 	DownArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("DownArrow"));
 	DownArrow->SetupAttachment(EdgeMesh);
 	Arrows.Add(DownArrow);
+
+	SetActorHiddenInGame(true);
 }
 
 // Called when the game starts or when spawned
@@ -44,9 +46,9 @@ void AScreenEdges::BeginPlay()
 	if (GameModeInterface)
 	{
 		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &AScreenEdges::SetEdgeLocation);
+		GameModeInterface->OnGameStartedDelegate().AddUObject(this, &AScreenEdges::GameStarted);
+		GameModeInterface->OnGameResetDelegate().AddUObject(this, &AScreenEdges::ResetEdge);
 	}
-
-	ActivateEdge(!RightEdge);
 }
 
 // Called every frame
@@ -59,19 +61,23 @@ void AScreenEdges::ActivateEdge(bool bActivate)
 {
 	SetActorHiddenInGame(!bActivate);
 	AActor* ChildActor = HoopChild->GetChildActor();
-	ChildActor->SetActorEnableCollision(bActivate);
 
-	if (bActivate)
+	if (ChildActor)
 	{
-		int32 Index = FMath::RandRange(0, Arrows.Num() - 1);
-		UArrowComponent* SelectedArrow = Arrows[Index];
+		ChildActor->SetActorEnableCollision(bActivate);
 
-		if (SelectedArrow)
+		if (bActivate)
 		{
-			FVector ArrowLocation = SelectedArrow->GetComponentLocation();
-			FVector CurrentLocation = ChildActor->GetActorLocation();
-			FVector NewLocation = FVector(CurrentLocation.X, CurrentLocation.Y, ArrowLocation.Z);
-			ChildActor->SetActorLocation(NewLocation);
+			int32 Index = FMath::RandRange(0, Arrows.Num() - 1);
+			UArrowComponent* SelectedArrow = Arrows[Index];
+
+			if (SelectedArrow)
+			{
+				FVector ArrowLocation = SelectedArrow->GetComponentLocation();
+				FVector CurrentLocation = ChildActor->GetActorLocation();
+				FVector NewLocation = FVector(CurrentLocation.X, CurrentLocation.Y, ArrowLocation.Z);
+				ChildActor->SetActorLocation(NewLocation);
+			}
 		}
 	}
 }
@@ -118,4 +124,14 @@ void AScreenEdges::SetEdgeLocation()
 	TargetLocation.Y = -500.f; //align with ball Y position
 	TargetLocation.Z = 0.0f;
 	SetActorLocation(TargetLocation);
+}
+
+void AScreenEdges::GameStarted()
+{
+	ActivateEdge(!RightEdge);
+}
+
+void AScreenEdges::ResetEdge()
+{
+	SetActorHiddenInGame(true);
 }

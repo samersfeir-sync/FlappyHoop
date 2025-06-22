@@ -23,7 +23,9 @@ void AMyPlayerController::BeginPlay()
     if (IGameModeInterface* GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this))
     {
         GameModeInterface->OnGameStartedDelegate().AddUObject(this, &AMyPlayerController::EnableControllerInput);
+        GameModeInterface->OnPointScoredDelegate().AddUObject(this, &AMyPlayerController::EnableControllerInput);
         GameModeInterface->OnGameResetDelegate().AddUObject(this, &AMyPlayerController::DisableControllerInput);
+        GameModeInterface->OnTimeEndedDelegate().AddUObject(this, &AMyPlayerController::DisableControllerInput);
     }
 }
 

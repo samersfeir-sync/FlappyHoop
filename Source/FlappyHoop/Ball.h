@@ -46,6 +46,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Parameters")
 	float VerticalImpulse = 800.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Parameters")
 	int Direction = -1;
 
 	APlayerController* PlayerController = nullptr;
@@ -59,7 +60,6 @@ private:
 
 	void ActivateBall();
 	void ResetBall();
-
 
 	UPROPERTY(EditInstanceOnly, Category = "Parameters")
 	AScreenEdges* LeftEdge;

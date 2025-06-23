@@ -26,7 +26,7 @@ AHoop::AHoop()
 void AHoop::BeginPlay()
 {
 	Super::BeginPlay();
-	ScoreCylinder->OnComponentEndOverlap.AddDynamic(this, &AHoop::OnScoreCylinderEndOverlap);
+	ScoreCylinder->OnComponentBeginOverlap.AddDynamic(this, &AHoop::OnScoreCylinderBeginOverlap);
 
 	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
@@ -38,27 +38,21 @@ void AHoop::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AHoop::OnScoreCylinderEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherActor->GetClass()->ImplementsInterface(UBallInterface::StaticClass()))
 	{
 		if (IBallInterface* BallInterface = Cast<IBallInterface>(OtherActor))
 		{
 			FVector BallVelocity = BallInterface->GetBallVelocity();
-
-			if (BallVelocity.Z < 0)
+			BallInterface->ChangeBallDirection();
+			if (GameModeInterface)
 			{
-				BallInterface->ChangeBallDirection();
-
-				if (GameModeInterface)
-				{
-					GameModeInterface->SetNewGameTime();
-					GameModeInterface->UpdateScore();
-					GameModeInterface->OnPointScoredDelegate().Broadcast();
-				}
+				GameModeInterface->SetNewGameTime();
+				GameModeInterface->UpdateScore();
+				GameModeInterface->OnPointScoredDelegate().Broadcast();
 			}
 		}
 	}
 }
-

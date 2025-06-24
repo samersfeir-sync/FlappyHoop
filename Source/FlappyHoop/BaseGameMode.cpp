@@ -11,6 +11,7 @@ void ABaseGameMode::ResetGame()
 	OnGameReset.Broadcast();
 	MaxGameTime = MaxGameTimeOriginal;
 	CurrentScore = 0;
+	ScoreMultiplier = 1;
 }
 
 void ABaseGameMode::SetNewGameTime()
@@ -23,6 +24,12 @@ void ABaseGameMode::SetNewGameTime()
 void ABaseGameMode::UpdateScore()
 {
 	CurrentScore += ScoreMultiplier;
+}
+
+void ABaseGameMode::EndGame()
+{
+	GameWidgetInstance->ShowGameOverWidget(true);
+	GameWidgetInstance->EndComboTimer();
 }
 
 void ABaseGameMode::BeginPlay()
@@ -39,6 +46,9 @@ void ABaseGameMode::BeginPlay()
 		GameWidgetInstance->SetWorldReference(World);
 		GameWidgetInstance->AddToViewport();
 	}
+
+	OnTimeEnded.AddUObject(this, &ABaseGameMode::EndTime);
+
 	//cache variables that are set from the editor
 	MaxGameTimeOriginal = MaxGameTime;
 }
@@ -67,4 +77,9 @@ void ABaseGameMode::FetchViewportSize()
 
 	ViewportSize = FVector2D(SizeX, SizeY);
 	OnViewportFetched.Broadcast();
+}
+
+void ABaseGameMode::EndTime()
+{
+	SetTimeEndedBool(true);
 }

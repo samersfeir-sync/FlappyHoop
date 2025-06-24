@@ -35,6 +35,12 @@ public:
 	virtual void SetNewGameTime() = 0;
 	virtual FOnPointScored& OnPointScoredDelegate() = 0;
 	virtual void UpdateScore() = 0;
+	virtual void UpdateScoreMultiplier() = 0;
+	virtual void ResetScoreMultiplier() = 0;
+	virtual int GetScoreMultiplier() const = 0;
 	virtual int GetCurrentScore() = 0;
 	virtual FOnTimeEnded& OnTimeEndedDelegate() = 0;
+	virtual bool GetTimeEndedBool() const = 0;
+	virtual void SetTimeEndedBool(bool NewTimeEnded) = 0;
+	virtual void EndGame() = 0;
 };

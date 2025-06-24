@@ -12,6 +12,7 @@ class UProgressBar;
 class UHorizontalBox;
 class UBorder;
 class IGameModeInterface;
+class UImage;
 
 UENUM(BlueprintType)
 enum class EWidgetState : uint8
@@ -27,13 +28,23 @@ class FLAPPYHOOP_API UGameWidget : public UUserWidget
 
 public:
 
-	FORCEINLINE void SetWorldReference(UWorld* NewWorld) { World = NewWorld; }
+	void SetWorldReference(UWorld* NewWorld) { World = NewWorld; }
 
-protected:
+	UFUNCTION()
+	void QuitGame();
 
-	virtual void NativeConstruct() override;
+	UFUNCTION()
+	void ReturnToMainMenu();
+
+	void ShowGameOverWidget(bool bShow);
+
+	void EndComboTimer();
+
+	void ShowComboText();
 
 private:
+
+	virtual void NativeConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* PlayButton;
@@ -71,20 +82,17 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UBorder* BlackBorder;
 
-	UFUNCTION()
-	void OnPlayClicked();
+	UPROPERTY(meta = (BindWidget))
+	UImage* BouncyBucketsLogo;
 
 	UFUNCTION()
-	void QuitGame();
+	void OnPlayClicked();
 
 	UFUNCTION()
 	void PauseGame();
 
 	UFUNCTION()
 	void ResumeGame();
-
-	UFUNCTION()
-	void ReturnToMainMenu();
 
 	void EnablePlayButton();
 
@@ -105,4 +113,19 @@ private:
 	void OnPointScored();
 	
 	void UpdateScoreUI(int NewScore);
+
+	UPROPERTY(meta = (BindWidget))
+	class UGameOverWidget* GameOverWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	class UComboProgressBarWidget* ComboProgressBarWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* ComboText;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* ComboTextAnimation;
+
+	UFUNCTION()
+	void OnComboAnimationFinished();
 };

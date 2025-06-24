@@ -32,9 +32,20 @@ public:
 
 	virtual void UpdateScore() override;
 
+	virtual void UpdateScoreMultiplier() override { ScoreMultiplier++; }
+
+	virtual int GetScoreMultiplier() const override { return ScoreMultiplier; }
+
+	virtual void ResetScoreMultiplier() override { ScoreMultiplier = 1; }
+
 	virtual int GetCurrentScore() override { return CurrentScore; }
 
 	virtual FOnTimeEnded& OnTimeEndedDelegate() override { return OnTimeEnded; }
+
+	virtual bool GetTimeEndedBool() const override { return bTimeEnded; }
+	virtual void SetTimeEndedBool(bool NewTimeEnded) override { bTimeEnded = NewTimeEnded; }
+
+	virtual void EndGame() override;
 
 protected:
 
@@ -75,4 +86,8 @@ private:
 	int ScoreMultiplier = 1;
 
 	FOnTimeEnded OnTimeEnded;
+
+	bool bTimeEnded = false;
+
+	void EndTime();
 };

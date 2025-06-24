@@ -51,7 +51,9 @@ void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent
 			{
 				GameModeInterface->SetNewGameTime();
 				GameModeInterface->UpdateScore();
+				GameModeInterface->SetTimeEndedBool(false);
 				GameModeInterface->OnPointScoredDelegate().Broadcast();
+				GameModeInterface->UpdateScoreMultiplier();
 			}
 		}
 	}

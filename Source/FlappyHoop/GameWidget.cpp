@@ -11,10 +11,16 @@
 #include "FunctionsLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/Gameplaystatics.h"
+#include "GameOverWidget.h"
+#include "ComboProgressBarWidget.h"
+#include "Components/Image.h"
 
 void UGameWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	GameOverWidget->SetGameWidgetRef(this);
+	GameOverWidget->InitializeWidget();
 
 	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
@@ -29,6 +35,7 @@ void UGameWidget::NativeConstruct()
 	ResumeButton->OnClicked.AddDynamic(this, &UGameWidget::ResumeGame);
 	HomeButton->OnClicked.AddDynamic(this, &UGameWidget::ReturnToMainMenu);
 	QuitButton->OnClicked.AddDynamic(this, &UGameWidget::QuitGame);
+
 }
 
 void UGameWidget::OnPlayClicked()
@@ -63,6 +70,44 @@ void UGameWidget::ReturnToMainMenu()
 	ApplyWidgetState(EWidgetState::MainMenu);
 	UpdateScoreUI(0);
 	TimeProgressBar->SetPercent(1.0f);
+	World->GetTimerManager().ClearTimer(GameTimer);
+	EndComboTimer();
+}
+
+void UGameWidget::ShowGameOverWidget(bool bShow)
+{
+	ESlateVisibility GameOverWidgetVisibility = bShow ? ESlateVisibility::Visible : ESlateVisibility::Hidden;
+
+	GameOverWidget->SetVisibility(GameOverWidgetVisibility);
+}
+
+void UGameWidget::EndComboTimer()
+{
+	ComboProgressBarWidget->EndTimer();
+}
+
+void UGameWidget::ShowComboText()
+{
+	int ScoreMultiplier = GameModeInterface->GetScoreMultiplier();
+
+	if (ScoreMultiplier == 1)
+		return;
+
+	ComboText->SetText(
+		FText::FromString(FString::Printf(TEXT("Combo! x%d"), ScoreMultiplier))
+	);
+
+	ComboText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+
+	FWidgetAnimationDynamicEvent AnimationFinished;
+	AnimationFinished.BindUFunction(this, FName("OnComboAnimationFinished"));
+	BindToAnimationFinished(ComboTextAnimation, AnimationFinished);
+	PlayAnimation(ComboTextAnimation);
+}
+
+void UGameWidget::OnComboAnimationFinished()
+{
+	ComboText->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UGameWidget::EnablePlayButton()
@@ -79,7 +124,9 @@ void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 		QuitButton->SetVisibility(ESlateVisibility::Visible);
 		ShopButton->SetVisibility(ESlateVisibility::Visible);
 		HighScoreText->SetVisibility(ESlateVisibility::Visible);
+		BouncyBucketsLogo->SetVisibility(ESlateVisibility::Visible);
 
+		GameOverWidget->SetVisibility(ESlateVisibility::Hidden);
 		PauseButton->SetVisibility(ESlateVisibility::Hidden);
 		TimeProgressBar->SetVisibility(ESlateVisibility::Hidden);
 		CoinsBox->SetVisibility(ESlateVisibility::Hidden);
@@ -92,6 +139,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 		QuitButton->SetVisibility(ESlateVisibility::Hidden);
 		ShopButton->SetVisibility(ESlateVisibility::Hidden);
 		HighScoreText->SetVisibility(ESlateVisibility::Hidden);
+		BouncyBucketsLogo->SetVisibility(ESlateVisibility::Hidden);
 
 		PauseButton->SetVisibility(ESlateVisibility::Visible);
 		TimeProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -130,6 +178,7 @@ void UGameWidget::OnPointScored()
 	TimeProgressBar->SetPercent(1.0f);
 	UpdateScoreUI(GameModeInterface->GetCurrentScore());
 	World->GetTimerManager().UnPauseTimer(GameTimer);
+	ShowComboText();
 }
 
 void UGameWidget::UpdateScoreUI(int NewScore)

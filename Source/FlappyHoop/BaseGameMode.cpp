@@ -12,6 +12,7 @@ void ABaseGameMode::ResetGame()
 	MaxGameTime = MaxGameTimeOriginal;
 	CurrentScore = 0;
 	ScoreMultiplier = 1;
+	bTimeEnded = false;
 }
 
 void ABaseGameMode::SetNewGameTime()

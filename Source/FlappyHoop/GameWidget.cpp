@@ -69,8 +69,8 @@ void UGameWidget::ReturnToMainMenu()
 	GameModeInterface->ResetGame();
 	ApplyWidgetState(EWidgetState::MainMenu);
 	UpdateScoreUI(0);
-	TimeProgressBar->SetPercent(1.0f);
 	World->GetTimerManager().ClearTimer(GameTimer);
+	TimeProgressBar->SetPercent(1.0f);
 	EndComboTimer();
 }
 

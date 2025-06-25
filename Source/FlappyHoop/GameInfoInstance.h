@@ -18,15 +18,17 @@ public:
 
 	virtual void SaveUserProgression(FUserProgression& NewUserProgression) override;
 	virtual void LoadUserProgression() override;
-	virtual FUserProgression GetUserProgression() const override { return UserProgression; }
+	virtual FUserProgression GetUserProgression() const override;
 
 private:
 
 	UPROPERTY()
 	UMySaveGame* SaveGame = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "User Progression")
 	FUserProgression UserProgression;
 
 	virtual void Init() override;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UMySaveGame> SaveGameClass;
 };

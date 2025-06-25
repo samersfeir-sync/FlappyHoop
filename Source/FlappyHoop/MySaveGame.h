@@ -17,6 +17,6 @@ class FLAPPYHOOP_API UMySaveGame : public USaveGame
 	
 public:
 
-	UPROPERTY(SaveGame)
+	UPROPERTY(EditDefaultsOnly, SaveGame, Category = "User Progression")
 	FUserProgression UserProgression;
 };

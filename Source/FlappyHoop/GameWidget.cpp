@@ -5,7 +5,6 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
-#include "Components/HorizontalBox.h"
 #include "Components/Border.h"
 #include "GameModeInterface.h"
 #include "FunctionsLibrary.h"
@@ -14,6 +13,8 @@
 #include "GameOverWidget.h"
 #include "ComboProgressBarWidget.h"
 #include "Components/Image.h"
+#include "TotalCoinsWidget.h"
+#include "ShopWidget.h"
 
 void UGameWidget::NativeConstruct()
 {
@@ -36,7 +37,7 @@ void UGameWidget::NativeConstruct()
 	ResumeButton->OnClicked.AddDynamic(this, &UGameWidget::ResumeGame);
 	HomeButton->OnClicked.AddDynamic(this, &UGameWidget::ReturnToMainMenu);
 	QuitButton->OnClicked.AddDynamic(this, &UGameWidget::QuitGame);
-
+	ShopButton->OnClicked.AddDynamic(this, &UGameWidget::ShowShopWidget);
 }
 
 void UGameWidget::OnPlayClicked()
@@ -121,6 +122,11 @@ void UGameWidget::UpdateHighScoreUI()
 	}
 }
 
+void UGameWidget::ShowShopWidget()
+{
+	ShopWidget->SetVisibility(ESlateVisibility::Visible);
+}
+
 void UGameWidget::EnablePlayButton()
 {
 	PlayButton->SetIsEnabled(true);
@@ -140,7 +146,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 		GameOverWidget->SetVisibility(ESlateVisibility::Hidden);
 		PauseButton->SetVisibility(ESlateVisibility::Hidden);
 		TimeProgressBar->SetVisibility(ESlateVisibility::Hidden);
-		CoinsBox->SetVisibility(ESlateVisibility::Hidden);
+		TotalCoinsWidget->SetVisibility(ESlateVisibility::Hidden);
 		ScoreText->SetVisibility(ESlateVisibility::Hidden);
 		BlackBorder->SetVisibility(ESlateVisibility::Hidden);
 		break;
@@ -154,7 +160,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 
 		PauseButton->SetVisibility(ESlateVisibility::Visible);
 		TimeProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
-		CoinsBox->SetVisibility(ESlateVisibility::HitTestInvisible);
+		TotalCoinsWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		ScoreText->SetVisibility(ESlateVisibility::HitTestInvisible);
 		break;
 

@@ -13,5 +13,8 @@ struct FUserProgression
     int32 HighScore = 0;
 
     UPROPERTY(EditDefaultsOnly)
+    int32 TotalCoins = 0;
+
+    UPROPERTY(EditDefaultsOnly)
     TArray<FBallsShopStruct> BallsOwned;
 };

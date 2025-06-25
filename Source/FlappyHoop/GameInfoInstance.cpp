@@ -18,19 +18,21 @@ void UGameInfoInstance::SaveUserProgression(FUserProgression& NewUserProgression
 void UGameInfoInstance::LoadUserProgression()
 {
 	if (UGameplayStatics::DoesSaveGameExist(TEXT("UserProgressionSlot"), 0))
-	{
 		SaveGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("UserProgressionSlot"), 0));
 
-		if (SaveGame)
-		{
-			UserProgression = SaveGame->UserProgression;
-		}
-	}
 	else
-	{
 		SaveGame = Cast<UMySaveGame>(
-			UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
+			UGameplayStatics::CreateSaveGameObject(SaveGameClass));
+
+	if (SaveGame)
+	{
+		UserProgression = SaveGame->UserProgression;
 	}
+}
+
+FUserProgression UGameInfoInstance::GetUserProgression() const
+{
+	return UserProgression;
 }
 
 void UGameInfoInstance::Init()

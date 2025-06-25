@@ -9,10 +9,10 @@
 class UButton;
 class UTextBlock;
 class UProgressBar;
-class UHorizontalBox;
 class UBorder;
 class IGameModeInterface;
 class UImage;
+class UTotalCoinsWidget;
 
 UENUM(BlueprintType)
 enum class EWidgetState : uint8
@@ -71,13 +71,7 @@ private:
 	UButton* ResumeButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* CoinsText;
-
-	UPROPERTY(meta = (BindWidget))
 	UProgressBar* TimeProgressBar;
-
-	UPROPERTY(meta = (BindWidget))
-	UHorizontalBox* CoinsBox;
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ScoreText;
@@ -130,4 +124,13 @@ private:
 	void OnComboAnimationFinished();
 
 	void UpdateHighScoreUI();
+
+	UPROPERTY(meta = (BindWidget))
+	UTotalCoinsWidget* TotalCoinsWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	class UShopWidget* ShopWidget;
+
+	UFUNCTION()
+	void ShowShopWidget();
 };

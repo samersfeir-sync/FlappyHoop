@@ -19,4 +19,6 @@ public:
 	static IGameInstanceInterface* GetGameInstanceInterface(UObject* WorldContextObject);
 
 	static IGameModeInterface* GetGameModeInterface(UObject* WorldContextObject);
+
+	static void SetHighScoreText(class UTextBlock* TextBlock, int NewHighScore);
 };

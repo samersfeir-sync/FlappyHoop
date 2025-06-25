@@ -8,6 +8,7 @@
 #include "BaseGameMode.generated.h"
 
 class UGameWidget;
+class IGameInstanceInterface;
 
 UCLASS()
 class FLAPPYHOOP_API ABaseGameMode : public AGameMode, public IGameModeInterface
@@ -46,6 +47,8 @@ public:
 	virtual void SetTimeEndedBool(bool NewTimeEnded) override { bTimeEnded = NewTimeEnded; }
 
 	virtual void EndGame() override;
+
+	virtual int GetHighScore() const override { return HighScore; }
 
 protected:
 
@@ -90,4 +93,8 @@ private:
 	bool bTimeEnded = false;
 
 	void EndTime();
+
+	IGameInstanceInterface* GameInstanceInterface = nullptr;
+
+	int HighScore = 0;
 };

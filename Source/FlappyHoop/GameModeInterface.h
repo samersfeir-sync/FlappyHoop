@@ -43,4 +43,5 @@ public:
 	virtual bool GetTimeEndedBool() const = 0;
 	virtual void SetTimeEndedBool(bool NewTimeEnded) = 0;
 	virtual void EndGame() = 0;
+	virtual int GetHighScore() const = 0;
 };

@@ -42,6 +42,9 @@ public:
 
 	void ShowComboText();
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	UImage* BouncyBucketsLogo;
+
 private:
 
 	virtual void NativeConstruct() override;
@@ -81,9 +84,6 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UBorder* BlackBorder;
-
-	UPROPERTY(meta = (BindWidget))
-	UImage* BouncyBucketsLogo;
 
 	UFUNCTION()
 	void OnPlayClicked();
@@ -128,4 +128,6 @@ private:
 
 	UFUNCTION()
 	void OnComboAnimationFinished();
+
+	void UpdateHighScoreUI();
 };

@@ -23,6 +23,7 @@ void UGameWidget::NativeConstruct()
 	GameOverWidget->InitializeWidget();
 
 	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
+	UpdateHighScoreUI();
 
 	if (GameModeInterface)
 	{
@@ -72,6 +73,7 @@ void UGameWidget::ReturnToMainMenu()
 	World->GetTimerManager().ClearTimer(GameTimer);
 	TimeProgressBar->SetPercent(1.0f);
 	EndComboTimer();
+	UpdateHighScoreUI();
 }
 
 void UGameWidget::ShowGameOverWidget(bool bShow)
@@ -108,6 +110,15 @@ void UGameWidget::ShowComboText()
 void UGameWidget::OnComboAnimationFinished()
 {
 	ComboText->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UGameWidget::UpdateHighScoreUI()
+{
+	if (GameModeInterface)
+	{
+		int HighScore = GameModeInterface->GetHighScore();
+		UFunctionsLibrary::SetHighScoreText(HighScoreText, HighScore);
+	}
 }
 
 void UGameWidget::EnablePlayButton()

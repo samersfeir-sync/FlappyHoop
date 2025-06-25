@@ -5,6 +5,7 @@
 #include "GameInstanceInterface.h"
 #include "GameModeInterface.h"
 #include "GameFramework/GameModeBase.h"
+#include "Components/TextBlock.h"
 
 IGameInstanceInterface* UFunctionsLibrary::GetGameInstanceInterface(UObject* WorldContextObject)
 {
@@ -40,4 +41,14 @@ IGameModeInterface* UFunctionsLibrary::GetGameModeInterface(UObject* WorldContex
 	}
 
 	return nullptr;
+}
+
+void UFunctionsLibrary::SetHighScoreText(UTextBlock* TextBlock, int NewHighScore)
+{
+	if (TextBlock)
+	{
+		TextBlock->SetText(
+			FText::FromString(FString::Printf(TEXT("Best: %d"), NewHighScore))
+		);
+	}
 }

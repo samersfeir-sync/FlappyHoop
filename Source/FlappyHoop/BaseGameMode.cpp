@@ -3,7 +3,10 @@
 
 #include "BaseGameMode.h"
 #include "Kismet/Gameplaystatics.h"
+#include "FunctionsLibrary.h"
 #include "GameWidget.h"
+#include "UserProgression.h"
+#include "GameInstanceInterface.h"
 
 void ABaseGameMode::ResetGame()
 {
@@ -31,6 +34,14 @@ void ABaseGameMode::EndGame()
 {
 	GameWidgetInstance->ShowGameOverWidget(true);
 	GameWidgetInstance->EndComboTimer();
+
+	FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
+	if (CurrentScore > HighScore)
+	{
+		HighScore = CurrentScore;
+		UserProgression.HighScore = CurrentScore;
+		GameInstanceInterface->SaveUserProgression(UserProgression);
+	}
 }
 
 void ABaseGameMode::BeginPlay()
@@ -39,6 +50,13 @@ void ABaseGameMode::BeginPlay()
 
 	World = GetWorld();
 	FetchViewportSize();
+
+	GameInstanceInterface = UFunctionsLibrary::GetGameInstanceInterface(World);
+
+	if (GameInstanceInterface)
+	{
+		HighScore = GameInstanceInterface->GetUserProgression().HighScore;
+	}
 
 	GameWidgetInstance = CreateWidget<UGameWidget>(World, GameWidgetClass);
 

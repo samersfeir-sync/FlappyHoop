@@ -14,7 +14,7 @@ void ACameraMain::BeginPlay()
 
 	if (GameModeInterface)
 	{
-		//GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &ACameraMain::SetAspectRatio);
+		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &ACameraMain::SetAspectRatio);
 	}
 }
 

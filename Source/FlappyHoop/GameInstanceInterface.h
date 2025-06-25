@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "UserProgression.h"
 #include "GameInstanceInterface.generated.h"
 
 // This class does not need to be modified.
@@ -20,4 +21,7 @@ class FLAPPYHOOP_API IGameInstanceInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
+	virtual void SaveUserProgression(FUserProgression& NewUserProgression) = 0;
+	virtual void LoadUserProgression() = 0;
+	virtual FUserProgression GetUserProgression() const = 0;
 };

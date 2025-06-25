@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
 #include "GameModeInterface.h"
+#include "BallType.h"
 #include "BaseGameMode.generated.h"
 
 class UGameWidget;
@@ -49,6 +50,12 @@ public:
 	virtual void EndGame() override;
 
 	virtual int GetHighScore() const override { return HighScore; }
+
+	virtual void ApplyBallSettings() override;
+
+	virtual void SetBallType(EBallType NewBallType) override { BallType = NewBallType; }
+
+	virtual EBallType GetBallType() const override { return BallType; }
 
 protected:
 
@@ -97,4 +104,12 @@ private:
 	IGameInstanceInterface* GameInstanceInterface = nullptr;
 
 	int HighScore = 0;
+
+	UPROPERTY(EditDefaultsOnly)
+	TMap<EBallType, UStaticMesh*> BallMeshes;
+
+	class ABall* DefaultBall;
+
+	UPROPERTY(EditDefaultsOnly)
+	EBallType BallType;
 };

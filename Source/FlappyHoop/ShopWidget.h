@@ -10,12 +10,17 @@
 class UButton;
 class UUniformGridPanel;
 class UTotalCoinsWidget;
+class IGameModeInterface;
+class UShopItemWidget;
 
 UCLASS()
 class FLAPPYHOOP_API UShopWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+
+	TArray<UShopItemWidget*> ShopItemWidgets;
 
 private:
 
@@ -35,6 +40,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UShopItemWidget> ShopItemWidgetClass;
 
+	UFUNCTION()
 	void FillItemContainer(TArray<FBallsShopStruct> BallsShopStruct);
 
 	UFUNCTION()
@@ -45,8 +51,8 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FBallsShopStruct> BallShopItems;
 
-	TArray<class UShopItemWidget*> ShopItemWidgets;
-
 	UPROPERTY(meta = (BindWidget))
 	class UScrollBox* ScrollBox;
+
+	IGameModeInterface* GameModeInterface = nullptr;
 };

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "BallsShopStruct.h"
+#include "BallType.h"
 #include "UserProgression.generated.h"
 
 USTRUCT(BlueprintType)
@@ -17,4 +18,7 @@ struct FUserProgression
 
     UPROPERTY(EditDefaultsOnly)
     TArray<FBallsShopStruct> BallsOwned;
+
+    UPROPERTY(EditDefaultsOnly)
+    EBallType BallType;
 };

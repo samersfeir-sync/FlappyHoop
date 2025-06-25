@@ -16,8 +16,9 @@ void UShopWidget::NativeConstruct()
     Super::NativeConstruct();
 
     GameInstanceInterface = UFunctionsLibrary::GetGameInstanceInterface(this);
-    FillItemContainer(GameInstanceInterface->GetUserProgression().BallsOwned);
+    GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
+    FillItemContainer(GameInstanceInterface->GetUserProgression().BallsOwned);
     BackButton->OnClicked.AddDynamic(this, &UShopWidget::HideShopWidget);
 }
 
@@ -44,18 +45,18 @@ void UShopWidget::FillItemContainer(TArray<FBallsShopStruct> BallsShopStruct)
 
         if (NewItem)
         {
-            ShopItemWidgets.Add(NewItem);
-            // NewItem->SetParentWidgetReference(this);
-
-           //  NewItem->OnBallPurchased.AddDynamic(this, &UShopScreenWidget::FillItemContainer);
-            // NewItem->SetGameInstanceInterface(GameInstanceInterface);
-
             bool bIsPurchased = BallItem.IsPurchased;
+            FString FormattedPrice = bIsPurchased ? "OWNED" : FString::FromInt(BallItem.Price);
+
+            ShopItemWidgets.Add(NewItem);
+            NewItem->SetParentWidgetReference(this);
+            NewItem->SetGameInstanceInterface(GameInstanceInterface);
+            NewItem->SetGameModeInterface(GameModeInterface);
+            NewItem->SetBallShopStruct(BallItem);
             NewItem->SetItemImage(BallItem.BallTexture);
             NewItem->SetCoinImageVisibility(!bIsPurchased);
-            // NewItem->SetBallType(BallItem.BallType);
-            FString FormattedPrice = bIsPurchased ? "OWNED" : FString::FromInt(BallItem.Price);
             NewItem->SetItemPriceText(FormattedPrice, bIsPurchased);
+            NewItem->OnBallPurchased.AddDynamic(this, &UShopWidget::FillItemContainer);
 
             int32 Row = i / ItemsPerRow;
             int32 Column = i % ItemsPerRow;

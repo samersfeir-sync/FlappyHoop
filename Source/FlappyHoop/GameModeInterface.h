@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "BallType.h"
 #include "GameModeInterface.generated.h"
 
 // This class does not need to be modified.
@@ -44,4 +45,7 @@ public:
 	virtual void SetTimeEndedBool(bool NewTimeEnded) = 0;
 	virtual void EndGame() = 0;
 	virtual int GetHighScore() const = 0;
+	virtual void ApplyBallSettings() = 0;
+	virtual void SetBallType(EBallType NewBallType) = 0;
+	virtual EBallType GetBallType() const = 0;
 };

@@ -32,10 +32,10 @@ public:
 	virtual FVector GetBallVelocity() const override;
 	virtual void ChangeBallDirection() override;
 
-private:
-
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	class UStaticMeshComponent* BallMesh;
+
+private:
 
 	UPROPERTY(EditAnywhere, Category = "Components")
 	class UProjectileMovementComponent* ProjectileMovement;

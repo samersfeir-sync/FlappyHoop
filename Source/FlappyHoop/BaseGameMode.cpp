@@ -7,6 +7,7 @@
 #include "GameWidget.h"
 #include "UserProgression.h"
 #include "GameInstanceInterface.h"
+#include "Ball.h"
 
 void ABaseGameMode::ResetGame()
 {
@@ -44,6 +45,14 @@ void ABaseGameMode::EndGame()
 	}
 }
 
+void ABaseGameMode::ApplyBallSettings()
+{
+	if (UStaticMesh** FoundMesh = BallMeshes.Find(BallType))
+	{
+		DefaultBall->BallMesh->SetStaticMesh(*FoundMesh);
+	}
+}
+
 void ABaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -51,19 +60,27 @@ void ABaseGameMode::BeginPlay()
 	World = GetWorld();
 	FetchViewportSize();
 
-	GameInstanceInterface = UFunctionsLibrary::GetGameInstanceInterface(World);
-
-	if (GameInstanceInterface)
-	{
-		HighScore = GameInstanceInterface->GetUserProgression().HighScore;
-	}
-
 	GameWidgetInstance = CreateWidget<UGameWidget>(World, GameWidgetClass);
 
 	if (GameWidgetInstance)
 	{
 		GameWidgetInstance->SetWorldReference(World);
 		GameWidgetInstance->AddToViewport();
+	}
+
+	DefaultBall = Cast<ABall>(UGameplayStatics::GetActorOfClass(World, ABall::StaticClass()));
+
+	GameInstanceInterface = UFunctionsLibrary::GetGameInstanceInterface(World);
+
+	if (GameInstanceInterface)
+	{
+		HighScore = GameInstanceInterface->GetUserProgression().HighScore;
+		BallType = GameInstanceInterface->GetUserProgression().BallType;
+
+		if (DefaultBall)
+		{
+			ApplyBallSettings();
+		}
 	}
 
 	OnTimeEnded.AddUObject(this, &ABaseGameMode::EndTime);

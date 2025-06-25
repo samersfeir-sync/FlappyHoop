@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -22,4 +20,9 @@ struct FBallsShopStruct
 
     UPROPERTY(EditDefaultsOnly, Category = "Shop")
     int Price = 200;
+
+    bool operator==(const FBallsShopStruct& Other) const
+    {
+        return BallType == Other.BallType;
+    }
 };

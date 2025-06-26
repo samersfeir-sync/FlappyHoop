@@ -8,6 +8,7 @@
 #include "UserProgression.h"
 #include "GameInstanceInterface.h"
 #include "Ball.h"
+#include "Coins.h"
 
 void ABaseGameMode::ResetGame()
 {
@@ -17,6 +18,7 @@ void ABaseGameMode::ResetGame()
 	CurrentScore = 0;
 	ScoreMultiplier = 1;
 	bTimeEnded = false;
+	CollectedCoins = 0;
 }
 
 void ABaseGameMode::SetNewGameTime()
@@ -33,7 +35,6 @@ void ABaseGameMode::UpdateScore()
 
 void ABaseGameMode::EndGame()
 {
-	GameWidgetInstance->ShowGameOverWidget(true);
 	GameWidgetInstance->EndComboTimer();
 
 	FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
@@ -41,8 +42,11 @@ void ABaseGameMode::EndGame()
 	{
 		HighScore = CurrentScore;
 		UserProgression.HighScore = CurrentScore;
-		GameInstanceInterface->SaveUserProgression(UserProgression);
 	}
+
+	UserProgression.TotalCoins += CollectedCoins;
+	GameInstanceInterface->SaveUserProgression(UserProgression);
+	GameWidgetInstance->ShowGameOverWidget(true);
 }
 
 void ABaseGameMode::ApplyBallSettings()
@@ -53,6 +57,29 @@ void ABaseGameMode::ApplyBallSettings()
 	}
 }
 
+int32 ABaseGameMode::GetTotalCoins() const
+{
+	return GameInstanceInterface->GetUserProgression().TotalCoins;
+}
+
+void ABaseGameMode::AddCoin()
+{
+	CollectedCoins++;
+}
+
+void ABaseGameMode::ActivateCoin()
+{
+	if (DefaultCoin->IsCoinActive())
+		return;
+
+	float Roll = FMath::FRandRange(0.0f, 100.0f);
+
+	if (Roll <= ChancePercent)
+	{
+		DefaultCoin->ActivateCoin(true);
+	}
+}
+
 void ABaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,15 +87,8 @@ void ABaseGameMode::BeginPlay()
 	World = GetWorld();
 	FetchViewportSize();
 
-	GameWidgetInstance = CreateWidget<UGameWidget>(World, GameWidgetClass);
-
-	if (GameWidgetInstance)
-	{
-		GameWidgetInstance->SetWorldReference(World);
-		GameWidgetInstance->AddToViewport();
-	}
-
 	DefaultBall = Cast<ABall>(UGameplayStatics::GetActorOfClass(World, ABall::StaticClass()));
+	DefaultCoin = Cast<ACoins>(UGameplayStatics::GetActorOfClass(World, ACoins::StaticClass()));
 
 	GameInstanceInterface = UFunctionsLibrary::GetGameInstanceInterface(World);
 
@@ -81,6 +101,14 @@ void ABaseGameMode::BeginPlay()
 		{
 			ApplyBallSettings();
 		}
+	}
+
+	GameWidgetInstance = CreateWidget<UGameWidget>(World, GameWidgetClass);
+
+	if (GameWidgetInstance)
+	{
+		GameWidgetInstance->SetWorldReference(World);
+		GameWidgetInstance->AddToViewport();
 	}
 
 	OnTimeEnded.AddUObject(this, &ABaseGameMode::EndTime);

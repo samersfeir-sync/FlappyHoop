@@ -25,12 +25,14 @@ void UGameWidget::NativeConstruct()
 
 	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 	UpdateHighScoreUI();
+	UpdateCoinUI();
 
 	if (GameModeInterface)
 	{
 		PlayButton->OnClicked.AddDynamic(this, &UGameWidget::OnPlayClicked);
 		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
 		GameModeInterface->OnPointScoredDelegate().AddUObject(this, &UGameWidget::OnPointScored);
+		GameModeInterface->OnCoinCollectedDelegate().AddUObject(this, &UGameWidget::UpdateCoinUI);
 	}
 
 	PauseButton->OnClicked.AddDynamic(this, &UGameWidget::PauseGame);
@@ -82,6 +84,18 @@ void UGameWidget::ShowGameOverWidget(bool bShow)
 	ESlateVisibility GameOverWidgetVisibility = bShow ? ESlateVisibility::Visible : ESlateVisibility::Hidden;
 
 	GameOverWidget->SetVisibility(GameOverWidgetVisibility);
+
+	if (bShow)
+	{
+		int32 HighScore = GameModeInterface->GetHighScore();
+		GameOverWidget->SetHighScoreText(HighScore);
+
+		int32 CurrentScore = GameModeInterface->GetCurrentScore();
+		GameOverWidget->SetCurrentScoreText(CurrentScore);
+
+		int32 CollectedCoins = GameModeInterface->GetCollectedCoins();
+		GameOverWidget->SetCoinsCollectedText(CollectedCoins);
+	}
 }
 
 void UGameWidget::EndComboTimer()
@@ -125,6 +139,17 @@ void UGameWidget::UpdateHighScoreUI()
 void UGameWidget::ShowShopWidget()
 {
 	ShopWidget->SetVisibility(ESlateVisibility::Visible);
+
+	int32 TotalCoins = GameModeInterface->GetTotalCoins();
+	ShopWidget->TotalCoinsWidget->UpdateCoinsText(TotalCoins);
+}
+
+void UGameWidget::UpdateCoinUI()
+{
+	int32 TotalCoins = GameModeInterface->GetTotalCoins();
+	int32 CollectedCoins = GameModeInterface->GetCollectedCoins();
+	int32 TempTotalCoins = TotalCoins + CollectedCoins;
+	TotalCoinsWidget->UpdateCoinsText(TempTotalCoins);
 }
 
 void UGameWidget::EnablePlayButton()
@@ -134,6 +159,8 @@ void UGameWidget::EnablePlayButton()
 
 void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 {
+	int32 TotalCoins = GameModeInterface->GetTotalCoins();
+
 	switch (NewState)
 	{
 	case EWidgetState::MainMenu:
@@ -161,6 +188,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 		PauseButton->SetVisibility(ESlateVisibility::Visible);
 		TimeProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
 		TotalCoinsWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		TotalCoinsWidget->UpdateCoinsText(TotalCoins);
 		ScoreText->SetVisibility(ESlateVisibility::HitTestInvisible);
 		break;
 

@@ -15,8 +15,11 @@ AHoop::AHoop()
 	HoopMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HoopMesh"));
 	RootComponent = HoopMesh;
 
+	HoopRing = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HoopRing"));
+	HoopRing->SetupAttachment(HoopMesh);
+
 	ScoreCylinder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ScoreCylinder"));
-	ScoreCylinder->SetupAttachment(HoopMesh);
+	ScoreCylinder->SetupAttachment(HoopRing);
 	ScoreCylinder->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	ScoreCylinder->SetCollisionResponseToAllChannels(ECR_Overlap);
 	ScoreCylinder->SetGenerateOverlapEvents(true);
@@ -47,6 +50,7 @@ void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent
 		{
 			FVector BallVelocity = BallInterface->GetBallVelocity();
 			BallInterface->ChangeBallDirection();
+
 			if (GameModeInterface)
 			{
 				GameModeInterface->SetNewGameTime();
@@ -54,6 +58,7 @@ void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent
 				GameModeInterface->SetTimeEndedBool(false);
 				GameModeInterface->OnPointScoredDelegate().Broadcast();
 				GameModeInterface->UpdateScoreMultiplier();
+				GameModeInterface->ActivateCoin();
 			}
 		}
 	}

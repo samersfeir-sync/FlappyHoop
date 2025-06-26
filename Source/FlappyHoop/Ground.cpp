@@ -17,29 +17,38 @@ AGround::AGround()
 	Ground->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Ground->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
 	Ground->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-
-	OnActorHit.AddDynamic(this, &AGround::OnHit);
 }
 
 void AGround::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnActorHit.AddDynamic(this, &AGround::OnHit);
+	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
+
+	if (GameModeInterface)
+	{
+		GameModeInterface->OnGameResetDelegate().AddUObject(this, &AGround::ResetGround);
+		OnActorHit.AddDynamic(this, &AGround::OnHit);
+	}
 }
 
 void AGround::OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (bAlreadyProcessedHit) return;
+
 	if (OtherActor->IsA(ABall::StaticClass()))
 	{
-		if (IGameModeInterface* GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this))
-		{
-			bool bTimeEnded = GameModeInterface->GetTimeEndedBool();
+		bool bTimeEnded = GameModeInterface->GetTimeEndedBool();
 
-			if (bTimeEnded)
-			{
-				GameModeInterface->EndGame();
-			}
+		if (bTimeEnded)
+		{
+			bAlreadyProcessedHit = true;
+			GameModeInterface->EndGame();
 		}
 	}
+}
+
+void AGround::ResetGround()
+{
+	bAlreadyProcessedHit = false;
 }

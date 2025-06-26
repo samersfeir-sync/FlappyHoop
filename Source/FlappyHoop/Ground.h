@@ -20,6 +20,8 @@ public:
 
 private:
 
+	class IGameModeInterface* GameModeInterface;
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
@@ -31,4 +33,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Components")
 	class UBoxComponent* Ground;
+
+	bool bAlreadyProcessedHit = false;
+
+	void ResetGround();
 };

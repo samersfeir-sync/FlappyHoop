@@ -5,12 +5,11 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "GameWidget.h"
+#include "FunctionsLibrary.h"
 
 void UGameOverWidget::SetHighScoreText(int HighScore)
 {
-	HighScoreText->SetText(
-		FText::FromString(FString::Printf(TEXT("Best: %d"), HighScore))
-	);
+	UFunctionsLibrary::SetHighScoreText(HighScoreText, HighScore);
 }
 
 void UGameOverWidget::SetCurrentScoreText(int Score)

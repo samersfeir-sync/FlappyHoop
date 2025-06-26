@@ -39,7 +39,5 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* RestartButton;
-
-	UPROPERTY()
 	UGameWidget* GameWidgetReference = nullptr;
 };

@@ -18,10 +18,12 @@ void UShopWidget::NativeConstruct()
     GameInstanceInterface = UFunctionsLibrary::GetGameInstanceInterface(this);
     GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
-    FillItemContainer(GameInstanceInterface->GetUserProgression().BallsOwned);
+    TArray<FBallsShopStruct> BallsStruct = GameInstanceInterface->GetUserProgression().BallsOwned;
+    FillItemContainer(BallsStruct);
     BackButton->OnClicked.AddDynamic(this, &UShopWidget::HideShopWidget);
 }
 
+/*
 void UShopWidget::NativePreConstruct()
 {
 	Super::NativePreConstruct();
@@ -30,7 +32,7 @@ void UShopWidget::NativePreConstruct()
     {
         FillItemContainer(BallShopItems);
     }
-}
+}*/
 
 void UShopWidget::FillItemContainer(TArray<FBallsShopStruct> BallsShopStruct)
 {
@@ -64,10 +66,8 @@ void UShopWidget::FillItemContainer(TArray<FBallsShopStruct> BallsShopStruct)
         }
     }
 
-    if (TotalCoinsWidget && GameInstanceInterface)
-    {
-        TotalCoinsWidget->UpdateCoinsText(GameInstanceInterface->GetUserProgression().TotalCoins);
-    }
+    int32 TotalCoins = GameInstanceInterface->GetUserProgression().TotalCoins;
+    TotalCoinsWidget->UpdateCoinsText(TotalCoins);
 }
 
 void UShopWidget::HideShopWidget()

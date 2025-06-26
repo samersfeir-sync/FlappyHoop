@@ -38,7 +38,7 @@ private:
 
 	void GameStarted();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, Category = "Components")
 	UChildActorComponent* HoopChild;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")

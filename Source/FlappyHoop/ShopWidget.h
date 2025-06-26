@@ -22,20 +22,20 @@ public:
 
 	TArray<UShopItemWidget*> ShopItemWidgets;
 
+	UPROPERTY(meta = (BindWidget))
+	UTotalCoinsWidget* TotalCoinsWidget;
+
 private:
 
 	virtual void NativeConstruct() override;
 
-	virtual void NativePreConstruct() override;
+	//virtual void NativePreConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* BackButton;
 
 	UPROPERTY(meta = (BindWidget))
 	UUniformGridPanel* ItemsGridPanel;
-
-	UPROPERTY(meta = (BindWidget))
-	UTotalCoinsWidget* TotalCoinsWidget;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UShopItemWidget> ShopItemWidgetClass;

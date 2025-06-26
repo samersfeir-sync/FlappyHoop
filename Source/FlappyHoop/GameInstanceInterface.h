@@ -23,5 +23,5 @@ public:
 
 	virtual void SaveUserProgression(FUserProgression& NewUserProgression) = 0;
 	virtual void LoadUserProgression() = 0;
-	virtual FUserProgression GetUserProgression() const = 0;
+	virtual FUserProgression& GetUserProgression() = 0;
 };

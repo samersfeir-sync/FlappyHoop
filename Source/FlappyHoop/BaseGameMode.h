@@ -57,6 +57,16 @@ public:
 
 	virtual EBallType GetBallType() const override { return BallType; }
 
+	virtual FOnCoinCollected& OnCoinCollectedDelegate() override { return OnCoinCollected; }
+
+	virtual int32 GetTotalCoins() const override;
+
+	virtual void AddCoin() override;
+
+	virtual int32 GetCollectedCoins() const override { return CollectedCoins; }
+
+	virtual void ActivateCoin() override;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -109,7 +119,15 @@ private:
 	TMap<EBallType, UStaticMesh*> BallMeshes;
 
 	class ABall* DefaultBall;
+	class ACoins* DefaultCoin;
 
 	UPROPERTY(EditDefaultsOnly)
 	EBallType BallType;
+
+	FOnCoinCollected OnCoinCollected;
+
+	int CollectedCoins = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Parameters", meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+	float ChancePercent = 25.0f;
 };

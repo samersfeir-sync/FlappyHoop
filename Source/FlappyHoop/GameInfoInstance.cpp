@@ -30,7 +30,7 @@ void UGameInfoInstance::LoadUserProgression()
 	}
 }
 
-FUserProgression UGameInfoInstance::GetUserProgression() const
+FUserProgression& UGameInfoInstance::GetUserProgression()
 {
 	return UserProgression;
 }

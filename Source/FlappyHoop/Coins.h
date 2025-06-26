@@ -4,16 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Hoop.generated.h"
+#include "Coins.generated.h"
 
 UCLASS()
-class FLAPPYHOOP_API AHoop : public AActor
+class FLAPPYHOOP_API ACoins : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AHoop();
+	ACoins();
+
+	void ActivateCoin(bool bActivate);
+
+	bool IsCoinActive() const { return bActive; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,18 +29,17 @@ public:
 
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Components")
-	UStaticMeshComponent* HoopMesh;
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UStaticMeshComponent* CoinMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Components")
-	UStaticMeshComponent* HoopRing;
-
-	UPROPERTY(EditAnywhere, Category = "Components")
-	UStaticMeshComponent* ScoreCylinder;
-	
 	UFUNCTION()
-	void OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	void OnCoinBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	class IGameModeInterface* GameModeInterface = nullptr;
+	class IGameModeInterface* GameModeInterface;
+
+	bool bActive = false;
+
+	UPROPERTY(EditInstanceOnly)
+	TArray<class ATargetPoint*> CoinLocations;
 };

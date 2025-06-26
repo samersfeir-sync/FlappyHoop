@@ -133,4 +133,6 @@ private:
 
 	UFUNCTION()
 	void ShowShopWidget();
+
+	void UpdateCoinUI();
 };

@@ -18,7 +18,7 @@ public:
 
 	virtual void SaveUserProgression(FUserProgression& NewUserProgression) override;
 	virtual void LoadUserProgression() override;
-	virtual FUserProgression GetUserProgression() const override;
+	virtual FUserProgression& GetUserProgression() override;
 
 private:
 

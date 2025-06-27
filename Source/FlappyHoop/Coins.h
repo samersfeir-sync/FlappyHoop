@@ -42,4 +42,6 @@ private:
 
 	UPROPERTY(EditInstanceOnly)
 	TArray<class ATargetPoint*> CoinLocations;
+
+	void ResetCoin();
 };

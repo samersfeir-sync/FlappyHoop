@@ -30,6 +30,11 @@ void ACoins::BeginPlay()
 	
 	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
+	if (GameModeInterface)
+	{
+		GameModeInterface->OnGameResetDelegate().AddUObject(this, &ACoins::ResetCoin);
+	}
+
 	CoinMesh->OnComponentBeginOverlap.AddDynamic(this, &ACoins::OnCoinBeginOverlap);
 }
 
@@ -68,3 +73,7 @@ void ACoins::ActivateCoin(bool bActivate)
 	}
 }
 
+void ACoins::ResetCoin()
+{
+	ActivateCoin(false);
+}

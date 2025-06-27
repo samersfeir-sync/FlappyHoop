@@ -22,6 +22,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	void SetRingRotation(bool bRightEdgeHoop);
 
 private:
 

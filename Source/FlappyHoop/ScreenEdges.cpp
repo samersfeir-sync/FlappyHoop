@@ -10,6 +10,7 @@
 #include "Camera/CameraActor.h"
 #include "CameraMain.h"
 #include "Ball.h"
+#include "Hoop.h"
 
 // Sets default values
 AScreenEdges::AScreenEdges()
@@ -53,6 +54,15 @@ void AScreenEdges::BeginPlay()
 		GameModeInterface->OnGameStartedDelegate().AddUObject(this, &AScreenEdges::GameStarted);
 		GameModeInterface->OnGameResetDelegate().AddUObject(this, &AScreenEdges::ResetEdge);
 	}
+
+	AActor* ChildActor = HoopChild->GetChildActor();
+
+	HoopChildActor = Cast<AHoop>(ChildActor);
+
+	if (HoopChildActor)
+	{
+		HoopChildActor->SetRingRotation(bRightEdge);
+	}
 }
 
 // Called every frame
@@ -90,7 +100,7 @@ void AScreenEdges::ActivateEdge(bool bActivate)
 
 void AScreenEdges::GameStarted()
 {
-	ActivateEdge(!RightEdge);
+	ActivateEdge(!bRightEdge);
 }
 
 void AScreenEdges::ResetEdge()

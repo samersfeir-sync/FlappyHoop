@@ -41,6 +41,14 @@ void AHoop::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AHoop::SetRingRotation(bool bRightEdgeHoop)
+{
+	FRotator InitialRotation = HoopRing->GetRelativeRotation();
+	float PitchRotation = bRightEdgeHoop ? -10.0f : 10.0f;
+	InitialRotation.Pitch = PitchRotation;
+	HoopRing->SetRelativeRotation(InitialRotation);
+}
+
 void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -49,16 +57,20 @@ void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent
 		if (IBallInterface* BallInterface = Cast<IBallInterface>(OtherActor))
 		{
 			FVector BallVelocity = BallInterface->GetBallVelocity();
-			BallInterface->ChangeBallDirection();
 
-			if (GameModeInterface)
+			if (BallVelocity.Z < 0)
 			{
-				GameModeInterface->SetNewGameTime();
-				GameModeInterface->UpdateScore();
-				GameModeInterface->SetTimeEndedBool(false);
-				GameModeInterface->OnPointScoredDelegate().Broadcast();
-				GameModeInterface->UpdateScoreMultiplier();
-				GameModeInterface->ActivateCoin();
+				BallInterface->ChangeBallDirection();
+
+				if (GameModeInterface)
+				{
+					GameModeInterface->SetNewGameTime();
+					GameModeInterface->UpdateScore();
+					GameModeInterface->SetTimeEndedBool(false);
+					GameModeInterface->OnPointScoredDelegate().Broadcast();
+					GameModeInterface->UpdateScoreMultiplier();
+					GameModeInterface->ActivateCoin();
+				}
 			}
 		}
 	}

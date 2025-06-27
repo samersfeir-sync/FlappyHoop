@@ -32,7 +32,7 @@ private:
 	UStaticMeshComponent* EdgeMesh;
 
 	UPROPERTY(EditInstanceOnly, Category = "Parameters")
-	bool RightEdge = false;
+	bool bRightEdge = false;
 
 	class IGameModeInterface* GameModeInterface = nullptr;
 
@@ -60,4 +60,6 @@ private:
 
 	UPROPERTY(EditInstanceOnly, Category = "Parameters")
 	class ABall* Ball;
+
+	class AHoop* HoopChildActor = nullptr;
 };

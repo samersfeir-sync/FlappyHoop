@@ -74,7 +74,7 @@ void ABaseGameMode::ActivateCoin()
 
 	float Roll = FMath::FRandRange(0.0f, 100.0f);
 
-	if (Roll <= ChancePercent)
+	if (Roll <= CoinChancePercent)
 	{
 		DefaultCoin->ActivateCoin(true);
 	}

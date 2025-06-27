@@ -129,5 +129,5 @@ private:
 	int CollectedCoins = 0;
 
 	UPROPERTY(EditDefaultsOnly, Category= "Parameters", meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
-	float ChancePercent = 25.0f;
+	float CoinChancePercent = 25.0f;
 };

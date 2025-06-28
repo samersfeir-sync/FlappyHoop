@@ -31,4 +31,15 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UMySaveGame> SaveGameClass;
+
+	void InitializeADUnits();
+
+	UPROPERTY(BlueprintReadOnly, Category = "Advertisement", meta = (AllowPrivateAccess = "true"))
+	FString BannerADUnitID;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Advertisement", meta = (AllowPrivateAccess = "true"))
+	FString InterstitialADUnitID;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Advertisement", meta = (AllowPrivateAccess = "true"))
+	FString RewardedADUnitID;
 };

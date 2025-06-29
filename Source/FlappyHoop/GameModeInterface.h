@@ -7,6 +7,9 @@
 #include "BallType.h"
 #include "GameModeInterface.generated.h"
 
+
+class IGameInstanceInterface;
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UGameModeInterface : public UInterface
@@ -54,4 +57,5 @@ public:
 	virtual void AddCoin() = 0;
 	virtual int32 GetCollectedCoins() const = 0;
 	virtual void ActivateCoin() = 0;
+	virtual IGameInstanceInterface* GetGameInstanceInterface() const = 0;
 };

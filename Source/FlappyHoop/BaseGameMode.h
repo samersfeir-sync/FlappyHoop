@@ -9,7 +9,6 @@
 #include "BaseGameMode.generated.h"
 
 class UGameWidget;
-class IGameInstanceInterface;
 
 UCLASS()
 class FLAPPYHOOP_API ABaseGameMode : public AGameMode, public IGameModeInterface
@@ -66,6 +65,8 @@ public:
 	virtual int32 GetCollectedCoins() const override { return CollectedCoins; }
 
 	virtual void ActivateCoin() override;
+
+	virtual IGameInstanceInterface* GetGameInstanceInterface() const override { return GameInstanceInterface; }
 
 protected:
 

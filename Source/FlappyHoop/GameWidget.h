@@ -13,6 +13,8 @@ class UBorder;
 class IGameModeInterface;
 class UImage;
 class UTotalCoinsWidget;
+class IAGBannerAdInterface;
+class IGameInstanceInterface;
 
 UENUM(BlueprintType)
 enum class EWidgetState : uint8
@@ -92,6 +94,8 @@ private:
 
 	IGameModeInterface* GameModeInterface = nullptr;
 
+	IGameInstanceInterface* GameInstanceInterface = nullptr;
+
 	UWorld* World = nullptr;
 
 	void ApplyWidgetState(EWidgetState NewState);
@@ -135,4 +139,6 @@ private:
 	void ShowShopWidget();
 
 	void UpdateCoinUI();
+
+	TScriptInterface<IAGBannerAdInterface> BannerAdInterface;
 };

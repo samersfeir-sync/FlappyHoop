@@ -15,6 +15,9 @@
 #include "Components/Image.h"
 #include "TotalCoinsWidget.h"
 #include "ShopWidget.h"
+#include "GameInstanceInterface.h"
+#include "Ads/AGAdLibrary.h"
+#include "Interface/AGBannerAdInterface.h"
 
 void UGameWidget::NativeConstruct()
 {
@@ -33,6 +36,7 @@ void UGameWidget::NativeConstruct()
 		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
 		GameModeInterface->OnPointScoredDelegate().AddUObject(this, &UGameWidget::OnPointScored);
 		GameModeInterface->OnCoinCollectedDelegate().AddUObject(this, &UGameWidget::UpdateCoinUI);
+		GameInstanceInterface = GameModeInterface->GetGameInstanceInterface();
 	}
 
 	PauseButton->OnClicked.AddDynamic(this, &UGameWidget::PauseGame);
@@ -40,6 +44,20 @@ void UGameWidget::NativeConstruct()
 	HomeButton->OnClicked.AddDynamic(this, &UGameWidget::ReturnToMainMenu);
 	QuitButton->OnClicked.AddDynamic(this, &UGameWidget::QuitGame);
 	ShopButton->OnClicked.AddDynamic(this, &UGameWidget::ShowShopWidget);
+
+
+	//banner ad
+
+	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
+		GameInstanceInterface->GetBannerAdUnitID(),
+		EAdSizeType::Banner,
+		EAdPosition::Bottom
+	);
+
+	if (BannerAdInterface)
+	{
+		BannerAdInterface->LoadAd(true);
+	}
 }
 
 void UGameWidget::OnPlayClicked()

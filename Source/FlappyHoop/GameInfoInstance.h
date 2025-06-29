@@ -19,6 +19,7 @@ public:
 	virtual void SaveUserProgression(FUserProgression& NewUserProgression) override;
 	virtual void LoadUserProgression() override;
 	virtual FUserProgression& GetUserProgression() override;
+	virtual FString GetBannerAdUnitID() const override { return BannerADUnitID; }
 
 private:
 

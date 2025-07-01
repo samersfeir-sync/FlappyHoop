@@ -36,6 +36,7 @@ void UGameWidget::NativeConstruct()
 		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
 		GameModeInterface->OnPointScoredDelegate().AddUObject(this, &UGameWidget::OnPointScored);
 		GameModeInterface->OnCoinCollectedDelegate().AddUObject(this, &UGameWidget::UpdateCoinUI);
+		GameModeInterface->OnSecondChanceGrantedDelegate().AddUObject(this, &UGameWidget::StartTimer);
 		GameInstanceInterface = GameModeInterface->GetGameInstanceInterface();
 	}
 
@@ -217,6 +218,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 
 void UGameWidget::StartTimer()
 {
+	TimeProgressBar->SetPercent(1.0f);
 	World->GetTimerManager().SetTimer(GameTimer, this, &UGameWidget::UpdateProgressBar, TickInterval, true);
 }
 
@@ -231,7 +233,7 @@ void UGameWidget::UpdateProgressBar()
 	{
 		CurrentPercent = 0.0f;
 		TimeProgressBar->SetPercent(CurrentPercent);
-		World->GetTimerManager().PauseTimer(GameTimer);
+		World->GetTimerManager().ClearTimer(GameTimer);
 		GameModeInterface->OnTimeEndedDelegate().Broadcast();
 	}
 }

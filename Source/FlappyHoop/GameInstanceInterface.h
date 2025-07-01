@@ -25,4 +25,6 @@ public:
 	virtual void LoadUserProgression() = 0;
 	virtual FUserProgression& GetUserProgression() = 0;
 	virtual FString GetBannerAdUnitID() const = 0;
+	virtual FString GetInterstitialAdUnitID() const = 0;
+	virtual FString GetRewardedAdUnitID() const = 0;
 };

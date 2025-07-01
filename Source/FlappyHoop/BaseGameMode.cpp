@@ -9,6 +9,10 @@
 #include "GameInstanceInterface.h"
 #include "Ball.h"
 #include "Coins.h"
+#include "Ads/AGAdLibrary.h"
+#include "Interface/AGInterstitialAdInterface.h"
+#include "Interface/AGRewardedAdInterface.h"
+#include "SecondChanceWidget.h"
 
 void ABaseGameMode::ResetGame()
 {
@@ -19,6 +23,8 @@ void ABaseGameMode::ResetGame()
 	ScoreMultiplier = 1;
 	bTimeEnded = false;
 	CollectedCoins = 0;
+	LoadInterstitialAd();
+	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
 }
 
 void ABaseGameMode::SetNewGameTime()
@@ -80,6 +86,31 @@ void ABaseGameMode::ActivateCoin()
 	}
 }
 
+void ABaseGameMode::LoadRewardedAd()
+{
+	RewardedAdInterface = UAGAdLibrary::MakeRewardedAd(
+		GameInstanceInterface->GetRewardedAdUnitID());
+
+	if (RewardedAdInterface)
+	{
+		RewardedAdInterface->LoadAd();
+
+		FOnRewardedAdLoadedDelegate Delegate;
+		Delegate.BindDynamic(this, &ABaseGameMode::ShowRewardedAdIfAvailable);
+		RewardedAdInterface->BindEventToOnAdLoaded(Delegate);
+	}
+}
+
+void ABaseGameMode::CreateSecondChanceWidget()
+{
+	SecondChanceWidgetInstance = CreateWidget<USecondChanceWidget>(World, SecondChanceWidgetClass);
+
+	if (SecondChanceWidgetInstance)
+	{
+		SecondChanceWidgetInstance->AddToViewport();
+	}
+}
+
 void ABaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -115,6 +146,10 @@ void ABaseGameMode::BeginPlay()
 
 	//cache variables that are set from the editor
 	MaxGameTimeOriginal = MaxGameTime;
+
+	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
+
+	OnGameStarted.AddUObject(this, &ABaseGameMode::StopInterstitialTimer);
 }
 
 void ABaseGameMode::FetchViewportSize()
@@ -146,4 +181,50 @@ void ABaseGameMode::FetchViewportSize()
 void ABaseGameMode::EndTime()
 {
 	SetTimeEndedBool(true);
+}
+
+void ABaseGameMode::ShowInterstitialAdIfAvailable()
+{
+	InterstitialAdInterface->Show();
+}
+
+void ABaseGameMode::ShowRewardedAdIfAvailable()
+{
+	FOnRewardedAdUserEarhedRewardDelegate Delegate;
+	Delegate.BindDynamic(this, &ABaseGameMode::GrantSecondChance);
+	RewardedAdInterface->BindEventToOnUserEarnedReward(Delegate);
+	RewardedAdInterface->Show();
+
+	if (SecondChanceWidgetInstance)
+	{
+		SecondChanceWidgetInstance->RemoveFromParent();
+		DereferenceSecondChanceWidget();
+	}
+}
+
+void ABaseGameMode::GrantSecondChance(FRewardItem Reward)
+{
+	MaxGameTime = MaxGameTimeOriginal;
+	OnSecondChanceGranted.Broadcast();
+	bTimeEnded = false;
+}
+
+void ABaseGameMode::LoadInterstitialAd()
+{
+	InterstitialAdInterface = UAGAdLibrary::MakeInterstitialAd(
+		GameInstanceInterface->GetInterstitialAdUnitID());
+
+	if (InterstitialAdInterface)
+	{	
+		InterstitialAdInterface->LoadAd();
+
+		FOnInterstitialAdLoadedDelegate Delegate;
+		Delegate.BindDynamic(this, &ABaseGameMode::ShowInterstitialAdIfAvailable);
+		InterstitialAdInterface->BindEventToOnAdLoaded(Delegate);
+	}
+}
+
+void ABaseGameMode::StopInterstitialTimer()
+{
+	GetWorld()->GetTimerManager().ClearTimer(InterstitialAdTimer);
 }

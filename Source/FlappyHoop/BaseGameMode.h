@@ -9,6 +9,8 @@
 #include "BaseGameMode.generated.h"
 
 class UGameWidget;
+class IAGInterstitialAdInterface;
+class USecondChanceWidget;
 
 UCLASS()
 class FLAPPYHOOP_API ABaseGameMode : public AGameMode, public IGameModeInterface
@@ -67,6 +69,19 @@ public:
 	virtual void ActivateCoin() override;
 
 	virtual IGameInstanceInterface* GetGameInstanceInterface() const override { return GameInstanceInterface; }
+
+	virtual  void LoadRewardedAd() override;
+
+	virtual FOnSecondChanceGranted& OnSecondChanceGrantedDelegate() override { return OnSecondChanceGranted; }
+
+	virtual void CreateSecondChanceWidget() override;
+
+	virtual TScriptInterface<IAGRewardedAdInterface> GetRewardedAdInterface() const override
+	{
+		return RewardedAdInterface;
+	}
+
+	virtual void DereferenceSecondChanceWidget() override { SecondChanceWidgetInstance = nullptr; }
 
 protected:
 
@@ -131,4 +146,30 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category= "Parameters", meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
 	float CoinChancePercent = 25.0f;
+
+	TScriptInterface<IAGInterstitialAdInterface> InterstitialAdInterface;
+
+	TScriptInterface< IAGRewardedAdInterface> RewardedAdInterface;
+
+	void LoadInterstitialAd();
+
+	UFUNCTION()
+	void ShowInterstitialAdIfAvailable();
+
+	UFUNCTION()
+	void ShowRewardedAdIfAvailable();
+
+	UFUNCTION()
+	void GrantSecondChance(FRewardItem Reward);
+
+	FTimerHandle InterstitialAdTimer;
+
+	void StopInterstitialTimer();
+
+	FOnSecondChanceGranted OnSecondChanceGranted;
+
+	USecondChanceWidget* SecondChanceWidgetInstance;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<USecondChanceWidget> SecondChanceWidgetClass;
 };

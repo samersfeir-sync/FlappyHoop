@@ -26,6 +26,7 @@ void AMyPlayerController::BeginPlay()
         GameModeInterface->OnPointScoredDelegate().AddUObject(this, &AMyPlayerController::EnableControllerInput);
         GameModeInterface->OnGameResetDelegate().AddUObject(this, &AMyPlayerController::DisableControllerInput);
         GameModeInterface->OnTimeEndedDelegate().AddUObject(this, &AMyPlayerController::DisableControllerInput);
+		GameModeInterface->OnSecondChanceGrantedDelegate().AddUObject(this, &AMyPlayerController::EnableControllerInput);
     }
 }
 

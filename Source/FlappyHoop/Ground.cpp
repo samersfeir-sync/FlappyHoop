@@ -28,6 +28,7 @@ void AGround::BeginPlay()
 	if (GameModeInterface)
 	{
 		GameModeInterface->OnGameResetDelegate().AddUObject(this, &AGround::ResetGround);
+		GameModeInterface->OnSecondChanceGrantedDelegate().AddUObject(this, &AGround::ResetGround);
 		OnActorHit.AddDynamic(this, &AGround::OnHit);
 	}
 }
@@ -43,7 +44,18 @@ void AGround::OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse
 		if (bTimeEnded)
 		{
 			bAlreadyProcessedHit = true;
-			GameModeInterface->EndGame();
+
+			bool SecondChanceAd = FMath::RandBool();
+
+			if (SecondChanceAd)
+			{
+				GameModeInterface->CreateSecondChanceWidget();
+			}
+
+			else
+			{
+				GameModeInterface->EndGame();
+			}
 		}
 	}
 }

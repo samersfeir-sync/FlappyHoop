@@ -7,8 +7,8 @@
 #include "BallType.h"
 #include "GameModeInterface.generated.h"
 
-
 class IGameInstanceInterface;
+class IAGRewardedAdInterface;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -23,6 +23,7 @@ DECLARE_MULTICAST_DELEGATE(FOnGameReset);
 DECLARE_MULTICAST_DELEGATE(FOnPointScored);
 DECLARE_MULTICAST_DELEGATE(FOnTimeEnded);
 DECLARE_MULTICAST_DELEGATE(FOnCoinCollected);
+DECLARE_MULTICAST_DELEGATE(FOnSecondChanceGranted);
 
 class FLAPPYHOOP_API IGameModeInterface
 {
@@ -58,4 +59,9 @@ public:
 	virtual int32 GetCollectedCoins() const = 0;
 	virtual void ActivateCoin() = 0;
 	virtual IGameInstanceInterface* GetGameInstanceInterface() const = 0;
+	virtual FOnSecondChanceGranted& OnSecondChanceGrantedDelegate() = 0;
+	virtual void LoadRewardedAd() = 0;
+	virtual void CreateSecondChanceWidget() = 0;
+	virtual TScriptInterface<IAGRewardedAdInterface> GetRewardedAdInterface() const = 0;
+	virtual void DereferenceSecondChanceWidget() = 0;
 };

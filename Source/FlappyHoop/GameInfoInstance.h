@@ -20,6 +20,8 @@ public:
 	virtual void LoadUserProgression() override;
 	virtual FUserProgression& GetUserProgression() override;
 	virtual FString GetBannerAdUnitID() const override { return BannerADUnitID; }
+	virtual FString GetInterstitialAdUnitID() const override { return InterstitialADUnitID; }
+	virtual FString GetRewardedAdUnitID() const override { return RewardedADUnitID; }
 
 private:
 
@@ -35,12 +37,8 @@ private:
 
 	void InitializeADUnits();
 
-	UPROPERTY(BlueprintReadOnly, Category = "Advertisement", meta = (AllowPrivateAccess = "true"))
 	FString BannerADUnitID;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Advertisement", meta = (AllowPrivateAccess = "true"))
 	FString InterstitialADUnitID;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Advertisement", meta = (AllowPrivateAccess = "true"))
 	FString RewardedADUnitID;
 };

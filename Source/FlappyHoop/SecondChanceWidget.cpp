@@ -7,7 +7,6 @@
 #include "Components/CircularThrobber.h"
 #include "GameModeInterface.h"
 #include "FunctionsLibrary.h"
-#include "Interface/AGRewardedAdInterface.h"
 
 void USecondChanceWidget::NativeConstruct()
 {
@@ -17,12 +16,12 @@ void USecondChanceWidget::NativeConstruct()
 
 	if (GameModeInterface && GameModeInterface->GetRewardedAdInterface())
 	{
-		FOnRewardedAdFailedToLoadDelegate FailedToLoadDelegate;
 		FailedToLoadDelegate.BindDynamic(this, &USecondChanceWidget::FailedToLoadSecondChanceAd);
 		GameModeInterface->GetRewardedAdInterface()->BindEventToOnAdFailedToLoad(FailedToLoadDelegate);
+		FailedToShowDelegate.BindDynamic(this, &USecondChanceWidget::FailedToLoadSecondChanceAd);
+		GameModeInterface->GetRewardedAdInterface()->BindEventToOnAdFailedToShow(FailedToShowDelegate);
 	}
 
-	StartSkipTimer();
 	SkipAdButton->OnClicked.AddDynamic(this, &USecondChanceWidget::SkipAdButtonClicked);
 	WatchAdButton->OnClicked.AddDynamic(this, &USecondChanceWidget::WatchAdButtonClicked);
 }
@@ -30,6 +29,15 @@ void USecondChanceWidget::NativeConstruct()
 void USecondChanceWidget::StartSkipTimer()
 {
 	GetWorld()->GetTimerManager().SetTimer(SkipTimerHandle, this, &USecondChanceWidget::DecreaseTimer, 1.0f, true);
+}
+
+void USecondChanceWidget::ResetWidget()
+{
+	GetWorld()->GetTimerManager().ClearTimer(SkipTimerHandle);
+	SetVisibility(ESlateVisibility::Hidden);
+	ChangeMainText("Don't give up yet! Watch an ad for a second shot!", FLinearColor::White);
+	MaxSkipTime = 12;
+	SkipCountdownText->SetText(FText::AsNumber(MaxSkipTime));
 }
 
 void USecondChanceWidget::DecreaseTimer()
@@ -50,6 +58,7 @@ void USecondChanceWidget::WatchAdButtonClicked()
 {
 	if (GameModeInterface)
 	{
+		GetWorld()->GetTimerManager().ClearTimer(SkipTimerHandle);
 		LoadingAdThrobber->SetVisibility(ESlateVisibility::Visible);
 		SkipCountdownText->SetVisibility(ESlateVisibility::Hidden);
 		WatchAdButton->SetIsEnabled(false);
@@ -60,11 +69,10 @@ void USecondChanceWidget::WatchAdButtonClicked()
 
 void USecondChanceWidget::SkipAdButtonClicked()
 {
-	RemoveFromParent();
+	ResetWidget();
 
 	if (GameModeInterface)
 	{
-		GameModeInterface->DereferenceSecondChanceWidget();
 		GameModeInterface->EndGame();
 	}
 }
@@ -78,6 +86,8 @@ void USecondChanceWidget::FailedToLoadSecondChanceAd(int ErrorCode, FString Erro
 		WatchAdButton->SetIsEnabled(true);
 		SkipAdButton->SetIsEnabled(true);
 		ChangeMainText(ErrorMessage, FLinearColor::Red);
+		SkipCountdownText->SetText(FText::AsNumber(12));
+		StartSkipTimer();
 	}
 }
 

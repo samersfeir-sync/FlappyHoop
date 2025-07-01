@@ -13,8 +13,8 @@ class UBorder;
 class IGameModeInterface;
 class UImage;
 class UTotalCoinsWidget;
-class IAGBannerAdInterface;
 class IGameInstanceInterface;
+class USecondChanceWidget;
 
 UENUM(BlueprintType)
 enum class EWidgetState : uint8
@@ -46,6 +46,16 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	UImage* BouncyBucketsLogo;
+
+	UFUNCTION()
+	void PauseGame();
+
+	EWidgetState GetCurrentWidgetState() const { return CurrentWidgetState; }
+
+	void ShowSecondChanceWidget(bool bShow);
+
+	UPROPERTY(meta = (BindWidget))
+	USecondChanceWidget* SecondChanceWidget;
 
 private:
 
@@ -85,9 +95,6 @@ private:
 	void OnPlayClicked();
 
 	UFUNCTION()
-	void PauseGame();
-
-	UFUNCTION()
 	void ResumeGame();
 
 	void EnablePlayButton();
@@ -98,7 +105,7 @@ private:
 
 	UWorld* World = nullptr;
 
-	void ApplyWidgetState(EWidgetState NewState);
+	void ApplyWidgetState(EWidgetState State);
 
 	FTimerHandle GameTimer;
 
@@ -140,5 +147,7 @@ private:
 
 	void UpdateCoinUI();
 
-	TScriptInterface<IAGBannerAdInterface> BannerAdInterface;
+	EWidgetState CurrentWidgetState = EWidgetState::MainMenu;
+
+	void PauseGameAfterRewardAD();
 };

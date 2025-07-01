@@ -11,6 +11,7 @@
 class UGameWidget;
 class IAGInterstitialAdInterface;
 class USecondChanceWidget;
+class IAGBannerAdInterface;
 
 UCLASS()
 class FLAPPYHOOP_API ABaseGameMode : public AGameMode, public IGameModeInterface
@@ -81,7 +82,9 @@ public:
 		return RewardedAdInterface;
 	}
 
-	virtual void DereferenceSecondChanceWidget() override { SecondChanceWidgetInstance = nullptr; }
+
+	UFUNCTION()
+	void GrantSecondChance(FRewardItem Reward);
 
 protected:
 
@@ -159,17 +162,14 @@ private:
 	UFUNCTION()
 	void ShowRewardedAdIfAvailable();
 
-	UFUNCTION()
-	void GrantSecondChance(FRewardItem Reward);
-
 	FTimerHandle InterstitialAdTimer;
 
 	void StopInterstitialTimer();
 
 	FOnSecondChanceGranted OnSecondChanceGranted;
 
+	UPROPERTY()
 	USecondChanceWidget* SecondChanceWidgetInstance;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<USecondChanceWidget> SecondChanceWidgetClass;
+	TScriptInterface<IAGBannerAdInterface> BannerAdInterface;
 };

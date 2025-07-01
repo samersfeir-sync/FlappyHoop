@@ -12,6 +12,7 @@
 #include "Ads/AGAdLibrary.h"
 #include "Interface/AGInterstitialAdInterface.h"
 #include "Interface/AGRewardedAdInterface.h"
+#include "Interface/AGBannerAdInterface.h"
 #include "SecondChanceWidget.h"
 
 void ABaseGameMode::ResetGame()
@@ -103,11 +104,9 @@ void ABaseGameMode::LoadRewardedAd()
 
 void ABaseGameMode::CreateSecondChanceWidget()
 {
-	SecondChanceWidgetInstance = CreateWidget<USecondChanceWidget>(World, SecondChanceWidgetClass);
-
 	if (SecondChanceWidgetInstance)
 	{
-		SecondChanceWidgetInstance->AddToViewport();
+		GameWidgetInstance->ShowSecondChanceWidget(true);
 	}
 }
 
@@ -140,6 +139,7 @@ void ABaseGameMode::BeginPlay()
 	{
 		GameWidgetInstance->SetWorldReference(World);
 		GameWidgetInstance->AddToViewport();
+		SecondChanceWidgetInstance = GameWidgetInstance->SecondChanceWidget;
 	}
 
 	OnTimeEnded.AddUObject(this, &ABaseGameMode::EndTime);
@@ -150,6 +150,20 @@ void ABaseGameMode::BeginPlay()
 	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
 
 	OnGameStarted.AddUObject(this, &ABaseGameMode::StopInterstitialTimer);
+
+
+	//banner ad
+
+	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
+		GameInstanceInterface->GetBannerAdUnitID(),
+		EAdSizeType::Banner,
+		EAdPosition::Bottom
+	);
+
+	if (BannerAdInterface)
+	{
+		BannerAdInterface->LoadAd(true);
+	}
 }
 
 void ABaseGameMode::FetchViewportSize()
@@ -185,6 +199,21 @@ void ABaseGameMode::EndTime()
 
 void ABaseGameMode::ShowInterstitialAdIfAvailable()
 {
+	if (GameWidgetInstance)
+	{
+		EWidgetState CurrentState = GameWidgetInstance->GetCurrentWidgetState();
+
+		switch (CurrentState)
+		{
+		case EWidgetState::Playing:
+			GameWidgetInstance->PauseGame();
+			break;
+
+		default:
+			break;
+		}
+	}
+
 	InterstitialAdInterface->Show();
 }
 
@@ -194,19 +223,14 @@ void ABaseGameMode::ShowRewardedAdIfAvailable()
 	Delegate.BindDynamic(this, &ABaseGameMode::GrantSecondChance);
 	RewardedAdInterface->BindEventToOnUserEarnedReward(Delegate);
 	RewardedAdInterface->Show();
-
-	if (SecondChanceWidgetInstance)
-	{
-		SecondChanceWidgetInstance->RemoveFromParent();
-		DereferenceSecondChanceWidget();
-	}
+	GameWidgetInstance->ShowSecondChanceWidget(false);
 }
 
 void ABaseGameMode::GrantSecondChance(FRewardItem Reward)
 {
+	bTimeEnded = false;
 	MaxGameTime = MaxGameTimeOriginal;
 	OnSecondChanceGranted.Broadcast();
-	bTimeEnded = false;
 }
 
 void ABaseGameMode::LoadInterstitialAd()

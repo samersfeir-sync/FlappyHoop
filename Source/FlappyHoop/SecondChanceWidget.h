@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Interface/AGRewardedAdInterface.h"
 #include "SecondChanceWidget.generated.h"
 
 class UButton;
@@ -15,11 +16,15 @@ class FLAPPYHOOP_API USecondChanceWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+
+	void StartSkipTimer();
+
+	void ResetWidget();
+
 private:
 
 	virtual void NativeConstruct() override;
-
-	void StartSkipTimer();
 
 	void DecreaseTimer();
 
@@ -55,4 +60,7 @@ private:
 	void FailedToLoadSecondChanceAd(int ErrorCode, FString ErrorMessage);
 
 	void ChangeMainText(FString NewText, FLinearColor NewColor);
+
+	FOnRewardedAdFailedToLoadDelegate FailedToLoadDelegate;
+	FOnRewardedAdFailedToShowDelegate FailedToShowDelegate;
 };

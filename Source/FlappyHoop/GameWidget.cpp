@@ -16,8 +16,7 @@
 #include "TotalCoinsWidget.h"
 #include "ShopWidget.h"
 #include "GameInstanceInterface.h"
-#include "Ads/AGAdLibrary.h"
-#include "Interface/AGBannerAdInterface.h"
+#include "SecondChanceWidget.h"
 
 void UGameWidget::NativeConstruct()
 {
@@ -36,7 +35,7 @@ void UGameWidget::NativeConstruct()
 		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
 		GameModeInterface->OnPointScoredDelegate().AddUObject(this, &UGameWidget::OnPointScored);
 		GameModeInterface->OnCoinCollectedDelegate().AddUObject(this, &UGameWidget::UpdateCoinUI);
-		GameModeInterface->OnSecondChanceGrantedDelegate().AddUObject(this, &UGameWidget::StartTimer);
+		GameModeInterface->OnSecondChanceGrantedDelegate().AddUObject(this, &UGameWidget::PauseGameAfterRewardAD);
 		GameInstanceInterface = GameModeInterface->GetGameInstanceInterface();
 	}
 
@@ -45,26 +44,13 @@ void UGameWidget::NativeConstruct()
 	HomeButton->OnClicked.AddDynamic(this, &UGameWidget::ReturnToMainMenu);
 	QuitButton->OnClicked.AddDynamic(this, &UGameWidget::QuitGame);
 	ShopButton->OnClicked.AddDynamic(this, &UGameWidget::ShowShopWidget);
-
-
-	//banner ad
-
-	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
-		GameInstanceInterface->GetBannerAdUnitID(),
-		EAdSizeType::Banner,
-		EAdPosition::Bottom
-	);
-
-	if (BannerAdInterface)
-	{
-		BannerAdInterface->LoadAd(true);
-	}
 }
 
 void UGameWidget::OnPlayClicked()
 {
 	GameModeInterface->OnGameStartedDelegate().Broadcast();
-	ApplyWidgetState(EWidgetState::Playing);
+	CurrentWidgetState = EWidgetState::Playing;
+	ApplyWidgetState(CurrentWidgetState);
 	StartTimer();
 }
 
@@ -81,6 +67,21 @@ void UGameWidget::PauseGame()
 	BlackBorder->SetVisibility(ESlateVisibility::Visible);
 }
 
+void UGameWidget::ShowSecondChanceWidget(bool bShow)
+{
+	ESlateVisibility SecondChanceWidgetVisibility = bShow ? ESlateVisibility::Visible : ESlateVisibility::Hidden;
+
+	SecondChanceWidget->SetVisibility(SecondChanceWidgetVisibility);
+
+	if (!bShow)
+	{
+		SecondChanceWidget->ResetWidget();
+		return;
+	}
+
+	SecondChanceWidget->StartSkipTimer();
+}
+
 void UGameWidget::ResumeGame()
 {
 	UGameplayStatics::SetGamePaused(World, false);
@@ -90,7 +91,8 @@ void UGameWidget::ResumeGame()
 void UGameWidget::ReturnToMainMenu()
 {
 	GameModeInterface->ResetGame();
-	ApplyWidgetState(EWidgetState::MainMenu);
+	CurrentWidgetState = EWidgetState::MainMenu;
+	ApplyWidgetState(CurrentWidgetState);
 	UpdateScoreUI(0);
 	World->GetTimerManager().ClearTimer(GameTimer);
 	TimeProgressBar->SetPercent(1.0f);
@@ -171,16 +173,23 @@ void UGameWidget::UpdateCoinUI()
 	TotalCoinsWidget->UpdateCoinsText(TempTotalCoins);
 }
 
+void UGameWidget::PauseGameAfterRewardAD()
+{
+	TimeProgressBar->SetPercent(1.0f);
+	World->GetTimerManager().UnPauseTimer(GameTimer);
+	PauseGame();
+}
+
 void UGameWidget::EnablePlayButton()
 {
 	PlayButton->SetIsEnabled(true);
 }
 
-void UGameWidget::ApplyWidgetState(EWidgetState NewState)
+void UGameWidget::ApplyWidgetState(EWidgetState State)
 {
 	int32 TotalCoins = GameModeInterface->GetTotalCoins();
 
-	switch (NewState)
+	switch (State)
 	{
 	case EWidgetState::MainMenu:
 		PlayButton->SetVisibility(ESlateVisibility::Visible);
@@ -218,7 +227,6 @@ void UGameWidget::ApplyWidgetState(EWidgetState NewState)
 
 void UGameWidget::StartTimer()
 {
-	TimeProgressBar->SetPercent(1.0f);
 	World->GetTimerManager().SetTimer(GameTimer, this, &UGameWidget::UpdateProgressBar, TickInterval, true);
 }
 
@@ -233,7 +241,7 @@ void UGameWidget::UpdateProgressBar()
 	{
 		CurrentPercent = 0.0f;
 		TimeProgressBar->SetPercent(CurrentPercent);
-		World->GetTimerManager().ClearTimer(GameTimer);
+		World->GetTimerManager().PauseTimer(GameTimer);
 		GameModeInterface->OnTimeEndedDelegate().Broadcast();
 	}
 }

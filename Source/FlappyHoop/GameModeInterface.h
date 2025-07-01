@@ -63,5 +63,4 @@ public:
 	virtual void LoadRewardedAd() = 0;
 	virtual void CreateSecondChanceWidget() = 0;
 	virtual TScriptInterface<IAGRewardedAdInterface> GetRewardedAdInterface() const = 0;
-	virtual void DereferenceSecondChanceWidget() = 0;
 };

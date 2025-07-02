@@ -8,7 +8,6 @@
 #include "GameModeInterface.generated.h"
 
 class IGameInstanceInterface;
-class IAGRewardedAdInterface;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -62,5 +61,6 @@ public:
 	virtual FOnSecondChanceGranted& OnSecondChanceGrantedDelegate() = 0;
 	virtual void LoadRewardedAd() = 0;
 	virtual void CreateSecondChanceWidget() = 0;
-	virtual TScriptInterface<IAGRewardedAdInterface> GetRewardedAdInterface() const = 0;
+	virtual bool GetCanWatchAd() const = 0;
+	virtual void SetCanWatchAd(bool bNewCanWatchAd) = 0;
 };

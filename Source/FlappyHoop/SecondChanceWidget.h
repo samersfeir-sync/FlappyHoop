@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Interface/AGRewardedAdInterface.h"
 #include "SecondChanceWidget.generated.h"
 
 class UButton;
@@ -21,6 +20,9 @@ public:
 	void StartSkipTimer();
 
 	void ResetWidget();
+
+	UFUNCTION()
+	void RewardAdFailed(int ErrorCode, FString ErrorMessage);
 
 private:
 
@@ -56,11 +58,5 @@ private:
 
 	class IGameModeInterface* GameModeInterface = nullptr;
 
-	UFUNCTION()
-	void FailedToLoadSecondChanceAd(int ErrorCode, FString ErrorMessage);
-
 	void ChangeMainText(FString NewText, FLinearColor NewColor);
-
-	FOnRewardedAdFailedToLoadDelegate FailedToLoadDelegate;
-	FOnRewardedAdFailedToShowDelegate FailedToShowDelegate;
 };

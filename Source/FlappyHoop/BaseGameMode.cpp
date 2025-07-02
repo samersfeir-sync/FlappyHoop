@@ -23,6 +23,7 @@ void ABaseGameMode::ResetGame()
 	CurrentScore = 0;
 	ScoreMultiplier = 1;
 	bTimeEnded = false;
+	bCanWatchAd = true;
 	CollectedCoins = 0;
 	LoadInterstitialAd();
 	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
@@ -99,6 +100,14 @@ void ABaseGameMode::LoadRewardedAd()
 		FOnRewardedAdLoadedDelegate Delegate;
 		Delegate.BindDynamic(this, &ABaseGameMode::ShowRewardedAdIfAvailable);
 		RewardedAdInterface->BindEventToOnAdLoaded(Delegate);
+
+		FOnRewardedAdFailedToLoadDelegate FailedToLoadDelegate;
+		FailedToLoadDelegate.BindDynamic(SecondChanceWidgetInstance, &USecondChanceWidget::RewardAdFailed);
+		RewardedAdInterface->BindEventToOnAdFailedToLoad(FailedToLoadDelegate);
+
+		FOnRewardedAdFailedToShowDelegate FailedToShowDelegate;
+		FailedToShowDelegate.BindDynamic(SecondChanceWidgetInstance, &USecondChanceWidget::RewardAdFailed);
+		RewardedAdInterface->BindEventToOnAdFailedToShow(FailedToShowDelegate);
 	}
 }
 
@@ -151,9 +160,7 @@ void ABaseGameMode::BeginPlay()
 
 	OnGameStarted.AddUObject(this, &ABaseGameMode::StopInterstitialTimer);
 
-
 	//banner ad
-
 	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
 		GameInstanceInterface->GetBannerAdUnitID(),
 		EAdSizeType::Banner,
@@ -229,7 +236,7 @@ void ABaseGameMode::ShowRewardedAdIfAvailable()
 void ABaseGameMode::GrantSecondChance(FRewardItem Reward)
 {
 	bTimeEnded = false;
-	MaxGameTime = MaxGameTimeOriginal;
+	//MaxGameTime = MaxGameTimeOriginal;
 	OnSecondChanceGranted.Broadcast();
 }
 

@@ -12,6 +12,7 @@ class UGameWidget;
 class IAGInterstitialAdInterface;
 class USecondChanceWidget;
 class IAGBannerAdInterface;
+class IAGRewardedAdInterface;
 
 UCLASS()
 class FLAPPYHOOP_API ABaseGameMode : public AGameMode, public IGameModeInterface
@@ -77,14 +78,12 @@ public:
 
 	virtual void CreateSecondChanceWidget() override;
 
-	virtual TScriptInterface<IAGRewardedAdInterface> GetRewardedAdInterface() const override
-	{
-		return RewardedAdInterface;
-	}
-
-
 	UFUNCTION()
 	void GrantSecondChance(FRewardItem Reward);
+
+	virtual bool GetCanWatchAd() const override { return bCanWatchAd; }
+
+	virtual void SetCanWatchAd(bool bNewCanWatchAd) override { bCanWatchAd = bNewCanWatchAd; }
 
 protected:
 
@@ -172,4 +171,6 @@ private:
 	USecondChanceWidget* SecondChanceWidgetInstance;
 
 	TScriptInterface<IAGBannerAdInterface> BannerAdInterface;
+
+	bool bCanWatchAd = true;
 };

@@ -45,17 +45,16 @@ void AGround::OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse
 		{
 			bAlreadyProcessedHit = true;
 
-			bool SecondChanceAd = FMath::RandBool();
+			bool bCanWatchAd = GameModeInterface->GetCanWatchAd();
 
-			if (SecondChanceAd)
+			if (bCanWatchAd)
 			{
 				GameModeInterface->CreateSecondChanceWidget();
+				GameModeInterface->SetCanWatchAd(false);
 			}
 
 			else
-			{
 				GameModeInterface->EndGame();
-			}
 		}
 	}
 }

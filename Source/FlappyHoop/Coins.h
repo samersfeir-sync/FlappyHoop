@@ -44,4 +44,7 @@ private:
 	TArray<class ATargetPoint*> CoinLocations;
 
 	void ResetCoin();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* PickUpSound;
 };

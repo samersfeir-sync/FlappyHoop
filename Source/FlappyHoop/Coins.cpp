@@ -6,6 +6,7 @@
 #include "GameModeInterface.h"
 #include "FunctionsLibrary.h"
 #include "Engine/TargetPoint.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ACoins::ACoins()
@@ -56,6 +57,8 @@ void ACoins::OnCoinBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 			GameModeInterface->AddCoin();
 			GameModeInterface->OnCoinCollectedDelegate().Broadcast();
 		}
+
+		UGameplayStatics::PlaySound2D(this, PickUpSound);
 	}
 }
 

@@ -41,4 +41,7 @@ private:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	class IGameModeInterface* GameModeInterface = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* ScoreSound;
 };

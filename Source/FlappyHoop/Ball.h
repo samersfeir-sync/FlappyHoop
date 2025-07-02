@@ -67,4 +67,6 @@ private:
 	UPROPERTY(EditInstanceOnly, Category = "Parameters")
 	AScreenEdges* RightEdge;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* FlapSound;
 };

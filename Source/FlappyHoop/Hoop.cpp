@@ -5,6 +5,7 @@
 #include "BallInterface.h"
 #include "GameModeInterface.h"
 #include "FunctionsLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AHoop::AHoop()
@@ -61,6 +62,7 @@ void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent
 			if (BallVelocity.Z < 0)
 			{
 				BallInterface->ChangeBallDirection();
+				UGameplayStatics::PlaySound2D(this, ScoreSound);
 
 				if (GameModeInterface)
 				{

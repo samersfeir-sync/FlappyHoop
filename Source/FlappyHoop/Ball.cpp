@@ -74,6 +74,7 @@ void ABall::LaunchBall()
 		FVector LaunchVelocity = FVector(HorizontalImpulse * Direction, 0.0f, VerticalImpulse);
 		ProjectileMovement->Velocity = LaunchVelocity;
         ProjectileMovement->Activate(true);
+        UGameplayStatics::PlaySound2D(this, FlapSound);
 	}
 }
 

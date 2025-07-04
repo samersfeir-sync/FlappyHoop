@@ -8,6 +8,7 @@
 #include "GameInfoInstance.generated.h"
 
 class UMySaveGame;
+class IAGBannerAdInterface;
 
 UCLASS()
 class FLAPPYHOOP_API UGameInfoInstance : public UGameInstance, public IGameInstanceInterface
@@ -41,4 +42,8 @@ private:
 	FString InterstitialADUnitID;
 
 	FString RewardedADUnitID;
+
+	void OnMoviePlaybackFinished();
+
+	TScriptInterface<IAGBannerAdInterface> BannerAdInterface;
 };

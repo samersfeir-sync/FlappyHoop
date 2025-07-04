@@ -91,6 +91,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UBorder* BlackBorder;
 
+	UPROPERTY(meta = (BindWidget))
+	UButton* SettingsButton;
+
 	UFUNCTION()
 	void OnPlayClicked();
 

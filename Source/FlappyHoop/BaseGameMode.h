@@ -11,7 +11,6 @@
 class UGameWidget;
 class IAGInterstitialAdInterface;
 class USecondChanceWidget;
-class IAGBannerAdInterface;
 class IAGRewardedAdInterface;
 
 UCLASS()
@@ -169,8 +168,6 @@ private:
 
 	UPROPERTY()
 	USecondChanceWidget* SecondChanceWidgetInstance;
-
-	TScriptInterface<IAGBannerAdInterface> BannerAdInterface;
 
 	bool bCanWatchAd = true;
 };

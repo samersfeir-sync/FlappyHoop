@@ -12,7 +12,6 @@
 #include "Ads/AGAdLibrary.h"
 #include "Interface/AGInterstitialAdInterface.h"
 #include "Interface/AGRewardedAdInterface.h"
-#include "Interface/AGBannerAdInterface.h"
 #include "SecondChanceWidget.h"
 
 void ABaseGameMode::ResetGame()
@@ -159,18 +158,6 @@ void ABaseGameMode::BeginPlay()
 	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
 
 	OnGameStarted.AddUObject(this, &ABaseGameMode::StopInterstitialTimer);
-
-	//banner ad
-	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
-		GameInstanceInterface->GetBannerAdUnitID(),
-		EAdSizeType::Banner,
-		EAdPosition::Bottom
-	);
-
-	if (BannerAdInterface)
-	{
-		BannerAdInterface->LoadAd(true);
-	}
 }
 
 void ABaseGameMode::FetchViewportSize()

@@ -4,6 +4,9 @@
 #include "GameInfoInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "MySaveGame.h"
+#include "MoviePlayer.h"
+#include "Interface/AGBannerAdInterface.h"
+#include "Ads/AGAdLibrary.h"
 
 void UGameInfoInstance::SaveUserProgression(FUserProgression& NewUserProgression)
 {
@@ -41,6 +44,28 @@ void UGameInfoInstance::Init()
 
 	LoadUserProgression();
 	InitializeADUnits();
+	GetMoviePlayer()->OnMoviePlaybackFinished().AddUObject(this, &UGameInfoInstance::OnMoviePlaybackFinished);
+
+	//banner ad
+	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
+		BannerADUnitID,
+		EAdSizeType::Banner,
+		EAdPosition::Bottom
+	);
+
+	if (BannerAdInterface)
+	{
+		BannerAdInterface->LoadAd(false);
+	}
+}
+
+
+void UGameInfoInstance::OnMoviePlaybackFinished()
+{
+	if (BannerAdInterface)
+	{
+		BannerAdInterface->Show();
+	}
 }
 
 void UGameInfoInstance::InitializeADUnits()

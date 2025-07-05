@@ -21,4 +21,10 @@ struct FUserProgression
 
     UPROPERTY(EditDefaultsOnly)
     EBallType BallType;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsMusicMuted = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsSFXMuted = false;
 };

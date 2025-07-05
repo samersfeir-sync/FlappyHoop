@@ -17,6 +17,7 @@
 #include "ShopWidget.h"
 #include "GameInstanceInterface.h"
 #include "SecondChanceWidget.h"
+#include "SettingsWidget.h"
 
 void UGameWidget::NativeConstruct()
 {
@@ -44,6 +45,7 @@ void UGameWidget::NativeConstruct()
 	HomeButton->OnClicked.AddDynamic(this, &UGameWidget::ReturnToMainMenu);
 	QuitButton->OnClicked.AddDynamic(this, &UGameWidget::QuitGame);
 	ShopButton->OnClicked.AddDynamic(this, &UGameWidget::ShowShopWidget);
+	SettingsButton->OnClicked.AddDynamic(this, &UGameWidget::SettingsButtonClicked);
 }
 
 void UGameWidget::OnPlayClicked()
@@ -180,6 +182,18 @@ void UGameWidget::PauseGameAfterRewardAD()
 	PauseGame();
 }
 
+void UGameWidget::SettingsButtonClicked()
+{
+	UBorder* MutedSFXBorder = SettingsWidget->MutedSFXBorder;
+	UBorder* UnmutedSFXBorder = SettingsWidget->UnmutedSFXBorder;
+	UBorder* MutedMusicBorder = SettingsWidget->MutedMusicBorder;
+	UBorder* UnmutedMusicBorder = SettingsWidget->UnmutedMusicBorder;
+
+	SettingsWidget->UpdateBordersVisuals(MutedSFXBorder, UnmutedSFXBorder);
+	SettingsWidget->UpdateBordersVisuals(MutedMusicBorder, UnmutedMusicBorder);
+	SettingsWidget->SetVisibility(ESlateVisibility::Visible);
+}
+
 void UGameWidget::EnablePlayButton()
 {
 	PlayButton->SetIsEnabled(true);
@@ -195,6 +209,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState State)
 		PlayButton->SetVisibility(ESlateVisibility::Visible);
 		QuitButton->SetVisibility(ESlateVisibility::Visible);
 		ShopButton->SetVisibility(ESlateVisibility::Visible);
+		SettingsButton->SetVisibility(ESlateVisibility::Visible);
 		HighScoreText->SetVisibility(ESlateVisibility::Visible);
 		BouncyBucketsLogo->SetVisibility(ESlateVisibility::Visible);
 
@@ -210,6 +225,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState State)
 		PlayButton->SetVisibility(ESlateVisibility::Hidden);
 		QuitButton->SetVisibility(ESlateVisibility::Hidden);
 		ShopButton->SetVisibility(ESlateVisibility::Hidden);
+		SettingsButton->SetVisibility(ESlateVisibility::Hidden);
 		HighScoreText->SetVisibility(ESlateVisibility::Hidden);
 		BouncyBucketsLogo->SetVisibility(ESlateVisibility::Hidden);
 

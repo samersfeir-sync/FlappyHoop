@@ -15,6 +15,8 @@ class UImage;
 class UTotalCoinsWidget;
 class IGameInstanceInterface;
 class USecondChanceWidget;
+class USettingsWidget;
+class UShopWidget;
 
 UENUM(BlueprintType)
 enum class EWidgetState : uint8
@@ -143,7 +145,7 @@ private:
 	UTotalCoinsWidget* TotalCoinsWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	class UShopWidget* ShopWidget;
+	UShopWidget* ShopWidget;
 
 	UFUNCTION()
 	void ShowShopWidget();
@@ -153,4 +155,10 @@ private:
 	EWidgetState CurrentWidgetState = EWidgetState::MainMenu;
 
 	void PauseGameAfterRewardAD();
+
+	UPROPERTY(meta = (BindWidget))
+	USettingsWidget* SettingsWidget;
+
+	UFUNCTION()
+	void SettingsButtonClicked();
 };

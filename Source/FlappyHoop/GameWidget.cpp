@@ -46,6 +46,7 @@ void UGameWidget::NativeConstruct()
 	QuitButton->OnClicked.AddDynamic(this, &UGameWidget::QuitGame);
 	ShopButton->OnClicked.AddDynamic(this, &UGameWidget::ShowShopWidget);
 	SettingsButton->OnClicked.AddDynamic(this, &UGameWidget::SettingsButtonClicked);
+	PauseSettingsButton->OnClicked.AddDynamic(this, &UGameWidget::SettingsButtonClicked);
 }
 
 void UGameWidget::OnPlayClicked()
@@ -184,13 +185,6 @@ void UGameWidget::PauseGameAfterRewardAD()
 
 void UGameWidget::SettingsButtonClicked()
 {
-	UBorder* MutedSFXBorder = SettingsWidget->MutedSFXBorder;
-	UBorder* UnmutedSFXBorder = SettingsWidget->UnmutedSFXBorder;
-	UBorder* MutedMusicBorder = SettingsWidget->MutedMusicBorder;
-	UBorder* UnmutedMusicBorder = SettingsWidget->UnmutedMusicBorder;
-
-	SettingsWidget->UpdateBordersVisuals(MutedSFXBorder, UnmutedSFXBorder);
-	SettingsWidget->UpdateBordersVisuals(MutedMusicBorder, UnmutedMusicBorder);
 	SettingsWidget->SetVisibility(ESlateVisibility::Visible);
 }
 

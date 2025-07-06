@@ -10,6 +10,7 @@
 #include "UserProgression.h"
 #include "GameModeInterface.h"
 #include "ShopWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 void UShopItemWidget::SetItemImage(UTexture2D* ItemTexture)
 {
@@ -55,6 +56,7 @@ void UShopItemWidget::OnBuyButtonClicked()
 					GameModeInterface->ApplyBallSettings();
 					GameInstanceInterface->SaveUserProgression(UserProgession);
 					OnBallPurchased.Broadcast(UserProgession.BallsOwned);
+					UGameplayStatics::PlaySound2D(this, PurchaseSound);
 				}
 			}
 		}

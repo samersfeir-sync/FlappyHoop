@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UserProgression.h"
 #include "SettingsWidget.generated.h"
 
 class UButton;
 class UBorder;
-struct FUserProgression;
 
 UCLASS()
 class FLAPPYHOOP_API USettingsWidget : public UUserWidget
@@ -29,7 +29,7 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UBorder* MutedMusicBorder;
 
-	FUserProgression UpdateBordersVisuals(UBorder* MutedBorder, UBorder* UnmutedBorder);
+	void UpdateBordersVisuals(UBorder* MutedBorder, UBorder* UnmutedBorder, bool bMuted) const;
 
 private:
 
@@ -57,4 +57,17 @@ private:
 
 	UFUNCTION()
 	void ToggleSoundEffects();
+
+	UFUNCTION()
+	void ToggleMusic();
+
+	FUserProgression UserProgression;
+
+	void SetSoundClassVolume(USoundClass* SoundClass, float Volume);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	USoundClass* SFXSoundClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	USoundClass* MusicSoundClass;
 };

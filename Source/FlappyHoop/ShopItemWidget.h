@@ -67,4 +67,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	FLinearColor SelectedOutlineColor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	USoundBase* PurchaseSound;
 };

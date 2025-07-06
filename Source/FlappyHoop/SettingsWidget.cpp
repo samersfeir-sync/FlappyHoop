@@ -6,6 +6,7 @@
 #include "GameInstanceInterface.h"
 #include "FunctionsLibrary.h"
 #include "Components/Border.h"
+#include "Sound/SoundClass.h"
 
 void USettingsWidget::NativeConstruct()
 {
@@ -13,8 +14,22 @@ void USettingsWidget::NativeConstruct()
 
 	GameInstanceInterface = UFunctionsLibrary::GetGameInstanceInterface(this);
 
+	if (GameInstanceInterface)
+	{
+		UserProgression = GameInstanceInterface->GetUserProgression();
+
+		bool bMutedSFX = UserProgression.bIsSFXMuted;
+		UpdateBordersVisuals(MutedSFXBorder, UnmutedSFXBorder, bMutedSFX);
+		SetSoundClassVolume(SFXSoundClass, !bMutedSFX ? 1.0f : 0.0f);
+
+		bool bMutedMusic = UserProgression.bIsMusicMuted;
+		UpdateBordersVisuals(MutedMusicBorder, UnmutedMusicBorder, bMutedMusic);
+		SetSoundClassVolume(MusicSoundClass, !bMutedMusic ? 1.0f : 0.0f);
+	}
+
 	BackButton->OnClicked.AddDynamic(this, &USettingsWidget::BackButtonClicked);
 	SoundEffectButton->OnClicked.AddDynamic(this, &USettingsWidget::ToggleSoundEffects);
+	MusicButton->OnClicked.AddDynamic(this, &USettingsWidget::ToggleMusic);
 }
 
 void USettingsWidget::BackButtonClicked()
@@ -22,11 +37,8 @@ void USettingsWidget::BackButtonClicked()
 	SetVisibility(ESlateVisibility::Hidden);
 }
 
-FUserProgression USettingsWidget::UpdateBordersVisuals(UBorder* MutedBorder, UBorder* UnmutedBorder)
+void USettingsWidget::UpdateBordersVisuals(UBorder* MutedBorder, UBorder* UnmutedBorder, bool bMuted) const
 {
-	FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
-	const bool bMuted = UserProgression.bIsSFXMuted;
-
 	const float MutedAlpha = bMuted ? 1.0f : 0.0f;
 	const float UnmutedAlpha = bMuted ? 0.0f : 1.0f;
 
@@ -50,16 +62,31 @@ FUserProgression USettingsWidget::UpdateBordersVisuals(UBorder* MutedBorder, UBo
 		UnmutedBrush.OutlineSettings.Color = FLinearColor(0, 0, 0, UnmutedAlpha);
 		UnmutedBorder->SetBrush(UnmutedBrush);
 	}
-
-	return UserProgression;
 }
 
 void USettingsWidget::ToggleSoundEffects()
 {
 	if (!GameInstanceInterface) return;
+
 	bool bMuted = UserProgression.bIsSFXMuted;
 	UserProgression.bIsSFXMuted = !bMuted;
-
-	FUserProgression UserProgression = UpdateBordersVisuals(MutedSFXBorder, UnmutedSFXBorder);
+	UpdateBordersVisuals(MutedSFXBorder, UnmutedSFXBorder, !bMuted);
+	SetSoundClassVolume(SFXSoundClass, bMuted ? 1.0f : 0.0f);
 	GameInstanceInterface->SaveUserProgression(UserProgression);
+}
+	
+void USettingsWidget::ToggleMusic()
+{
+	if (!GameInstanceInterface) return;
+
+	bool bMuted = UserProgression.bIsMusicMuted;
+	UserProgression.bIsMusicMuted = !bMuted;
+	UpdateBordersVisuals(MutedMusicBorder, UnmutedMusicBorder, !bMuted);
+	SetSoundClassVolume(MusicSoundClass, !bMuted ? 1.0f : 0.0f);
+	GameInstanceInterface->SaveUserProgression(UserProgression);
+}
+
+void USettingsWidget::SetSoundClassVolume(USoundClass* SoundClass, float Volume)
+{
+	SoundClass->Properties.Volume = Volume;
 }

@@ -96,6 +96,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UButton* SettingsButton;
 
+	UPROPERTY(meta = (BindWidget))
+	UButton* PauseSettingsButton;
+
 	UFUNCTION()
 	void OnPlayClicked();
 

@@ -47,18 +47,6 @@ void UGameInfoInstance::Init()
 	InitializeADUnits();
 	GetMoviePlayer()->OnMoviePlaybackFinished().AddUObject(this, &UGameInfoInstance::OnMoviePlaybackFinished);
 
-	//banner ad
-	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
-		BannerADUnitID,
-		EAdSizeType::Banner,
-		EAdPosition::Bottom
-	);
-
-	if (BannerAdInterface)
-	{
-		BannerAdInterface->LoadAd(false);
-	}
-
 	MusicAudioComponent = NewObject<UAudioComponent>(this);
 
 	if (MusicAudioComponent)
@@ -72,9 +60,16 @@ void UGameInfoInstance::Init()
 
 void UGameInfoInstance::OnMoviePlaybackFinished()
 {
+	//banner ad
+	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
+		BannerADUnitID,
+		EAdSizeType::Banner,
+		EAdPosition::Bottom
+	);
+
 	if (BannerAdInterface)
 	{
-		BannerAdInterface->Show();
+		BannerAdInterface->LoadAd(true);
 	}
 
 	bool bMusicMuted = UserProgression.bIsMusicMuted;

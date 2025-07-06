@@ -68,6 +68,5 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Audio")
 	USoundClass* SFXSoundClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Audio")
-	USoundClass* MusicSoundClass;
+	void ToggleMusic(bool bMuted);
 };

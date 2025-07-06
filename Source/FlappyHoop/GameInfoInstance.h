@@ -46,4 +46,15 @@ private:
 	void OnMoviePlaybackFinished();
 
 	TScriptInterface<IAGBannerAdInterface> BannerAdInterface;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	USoundBase* GameMusic;
+
+	virtual void PlayBackgroundMusic() override;
+
+	virtual void StopBackgroundMusic() override;
+
+	UPROPERTY()
+	UAudioComponent* MusicAudioComponent;
+
 };

@@ -27,4 +27,6 @@ public:
 	virtual FString GetBannerAdUnitID() const = 0;
 	virtual FString GetInterstitialAdUnitID() const = 0;
 	virtual FString GetRewardedAdUnitID() const = 0;
+	virtual void PlayBackgroundMusic() = 0;
+	virtual void StopBackgroundMusic() = 0;
 };

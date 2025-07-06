@@ -24,7 +24,7 @@ void USettingsWidget::NativeConstruct()
 
 		bool bMutedMusic = UserProgression.bIsMusicMuted;
 		UpdateBordersVisuals(MutedMusicBorder, UnmutedMusicBorder, bMutedMusic);
-		SetSoundClassVolume(MusicSoundClass, !bMutedMusic ? 1.0f : 0.0f);
+		ToggleMusic(bMutedMusic);
 	}
 
 	BackButton->OnClicked.AddDynamic(this, &USettingsWidget::BackButtonClicked);
@@ -82,11 +82,16 @@ void USettingsWidget::ToggleMusic()
 	bool bMuted = UserProgression.bIsMusicMuted;
 	UserProgression.bIsMusicMuted = !bMuted;
 	UpdateBordersVisuals(MutedMusicBorder, UnmutedMusicBorder, !bMuted);
-	SetSoundClassVolume(MusicSoundClass, !bMuted ? 1.0f : 0.0f);
+	ToggleMusic(!bMuted);
 	GameInstanceInterface->SaveUserProgression(UserProgression);
 }
 
 void USettingsWidget::SetSoundClassVolume(USoundClass* SoundClass, float Volume)
 {
 	SoundClass->Properties.Volume = Volume;
+}
+
+void USettingsWidget::ToggleMusic(bool bMuted)
+{
+	bMuted ? GameInstanceInterface->StopBackgroundMusic() : GameInstanceInterface->PlayBackgroundMusic();
 }

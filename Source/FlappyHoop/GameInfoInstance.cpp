@@ -7,6 +7,7 @@
 #include "MoviePlayer.h"
 #include "Interface/AGBannerAdInterface.h"
 #include "Ads/AGAdLibrary.h"
+#include "Components/AudioComponent.h"
 
 void UGameInfoInstance::SaveUserProgression(FUserProgression& NewUserProgression)
 {
@@ -57,14 +58,44 @@ void UGameInfoInstance::Init()
 	{
 		BannerAdInterface->LoadAd(false);
 	}
-}
 
+	MusicAudioComponent = NewObject<UAudioComponent>(this);
+
+	if (MusicAudioComponent)
+	{
+		MusicAudioComponent->SetSound(GameMusic);
+		MusicAudioComponent->bAutoActivate = false;
+		MusicAudioComponent->bIsUISound = true;
+		MusicAudioComponent->RegisterComponent();
+	}
+}
 
 void UGameInfoInstance::OnMoviePlaybackFinished()
 {
 	if (BannerAdInterface)
 	{
 		BannerAdInterface->Show();
+	}
+
+	bool bMusicMuted = UserProgression.bIsMusicMuted;
+
+	if (!bMusicMuted)
+		PlayBackgroundMusic();
+}
+
+void UGameInfoInstance::PlayBackgroundMusic()
+{
+	if (MusicAudioComponent)
+	{
+		MusicAudioComponent->Play();
+	}
+}
+
+void UGameInfoInstance::StopBackgroundMusic()
+{
+	if (MusicAudioComponent)
+	{
+		MusicAudioComponent->Stop();
 	}
 }
 

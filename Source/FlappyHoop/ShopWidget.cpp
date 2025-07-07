@@ -23,7 +23,7 @@ void UShopWidget::NativeConstruct()
     BackButton->OnClicked.AddDynamic(this, &UShopWidget::HideShopWidget);
 }
 
-/*
+
 void UShopWidget::NativePreConstruct()
 {
 	Super::NativePreConstruct();
@@ -32,7 +32,7 @@ void UShopWidget::NativePreConstruct()
     {
         FillItemContainer(BallShopItems);
     }
-}*/
+}
 
 void UShopWidget::FillItemContainer(TArray<FBallsShopStruct> BallsShopStruct)
 {
@@ -65,6 +65,9 @@ void UShopWidget::FillItemContainer(TArray<FBallsShopStruct> BallsShopStruct)
             ItemsGridPanel->AddChildToUniformGrid(NewItem, Row, Column);
         }
     }
+
+    if (IsDesignTime())
+        return;
 
     int32 TotalCoins = GameInstanceInterface->GetUserProgression().TotalCoins;
     TotalCoinsWidget->UpdateCoinsText(TotalCoins);

@@ -29,7 +29,7 @@ private:
 
 	virtual void NativeConstruct() override;
 
-	//virtual void NativePreConstruct() override;
+	virtual void NativePreConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* BackButton;

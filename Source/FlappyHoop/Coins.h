@@ -23,20 +23,23 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* PickUpSound;
+
+	UFUNCTION()
+	virtual void OnCoinBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	class IGameModeInterface* GameModeInterface;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UStaticMeshComponent* CoinMesh;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 private:
-
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	UStaticMeshComponent* CoinMesh;
-
-	UFUNCTION()
-	void OnCoinBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	class IGameModeInterface* GameModeInterface;
 
 	bool bActive = false;
 
@@ -44,7 +47,4 @@ private:
 	TArray<class ATargetPoint*> CoinLocations;
 
 	void ResetCoin();
-
-	UPROPERTY(EditDefaultsOnly, Category = "Sound")
-	USoundBase* PickUpSound;
 };

@@ -63,7 +63,13 @@ public:
 
 	virtual int32 GetTotalCoins() const override;
 
+	virtual int32 GetTotalGems() const override;
+
+	virtual int32 GetCollectedGems() const { return CollectedGems; }
+
 	virtual void AddCoin() override;
+
+	virtual void AddGem() override;
 
 	virtual int32 GetCollectedCoins() const override { return CollectedCoins; }
 
@@ -137,6 +143,7 @@ private:
 
 	class ABall* DefaultBall;
 	class ACoins* DefaultCoin;
+	class AGems* DefaultGem;
 
 	UPROPERTY(EditDefaultsOnly)
 	EBallType BallType;
@@ -144,9 +151,20 @@ private:
 	FOnCoinCollected OnCoinCollected;
 
 	int CollectedCoins = 0;
+	int CollectedGems = 0;
 
-	UPROPERTY(EditDefaultsOnly, Category= "Parameters", meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
-	float CoinChancePercent = 25.0f;
+	UPROPERTY(EditDefaultsOnly, Category= "Collectibles", meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+	float CollectibleChancePercent = 25.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Collectibles", meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+	float CoinChancePercent = 75.0f;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Collectibles")
+	float GemChancePercent = 25.0f;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 	TScriptInterface<IAGInterstitialAdInterface> InterstitialAdInterface;
 

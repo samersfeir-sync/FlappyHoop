@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UserProgression.h"
 #include "BallsShopStruct.h"
 #include "ShopItemWidget.generated.h"
 
@@ -31,6 +32,8 @@ public:
 	void SetGameInstanceInterface(IGameInstanceInterface* NewInterface) { GameInstanceInterface = NewInterface; }
 	void SetGameModeInterface(IGameModeInterface* NewInterface) { GameModeInterface = NewInterface; }
 	void SetParentWidgetReference(UShopWidget* NewParentWidget) { ParentWidget = NewParentWidget; }
+	void PurchaseItem(FUserProgression UserProgression, int32 BallIndex, int32 GemsUsed);
+	int32 GetBallIndex() const { return IndexFound; }
 
 	UFUNCTION()
 	void OnBuyButtonClicked();
@@ -70,4 +73,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Audio")
 	USoundBase* PurchaseSound;
+
+	int32 IndexFound = INDEX_NONE;
+
+	UPROPERTY(EditDefaultsOnly)
+	float GemsNeededMultiplier = 2.0f;
 };

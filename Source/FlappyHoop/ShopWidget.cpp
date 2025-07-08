@@ -10,6 +10,7 @@
 #include "TotalCoinsWidget.h"
 #include "Components/Button.h"
 #include "Components/ScrollBox.h"
+#include "TotalGemsWidget.h"
 
 void UShopWidget::NativeConstruct()
 {
@@ -71,6 +72,8 @@ void UShopWidget::FillItemContainer(TArray<FBallsShopStruct> BallsShopStruct)
 
     int32 TotalCoins = GameInstanceInterface->GetUserProgression().TotalCoins;
     TotalCoinsWidget->UpdateCoinsText(TotalCoins);
+	int32 TotalGems = GameInstanceInterface->GetUserProgression().TotalGems;
+	TotalGemsWidget->UpdateGemsText(TotalGems);
 }
 
 void UShopWidget::HideShopWidget()

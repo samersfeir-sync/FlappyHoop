@@ -20,6 +20,7 @@ public:
 	void SetHighScoreText(int HighScore);
 	void SetCurrentScoreText(int Score);
 	void SetCoinsCollectedText(int Coins);
+	void SetGemsCollectedText(int Gems);
 	void SetGameWidgetRef(UGameWidget* NewGameWidget) { GameWidgetReference = NewGameWidget; }
 	void InitializeWidget();
 
@@ -27,6 +28,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CollectedCoinsText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* CollectedGemsText;
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CurrentScoreText;
@@ -39,5 +43,6 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* RestartButton;
+
 	UGameWidget* GameWidgetReference = nullptr;
 };

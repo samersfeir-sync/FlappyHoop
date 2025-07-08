@@ -22,8 +22,13 @@ void UGameOverWidget::SetCurrentScoreText(int Score)
 void UGameOverWidget::SetCoinsCollectedText(int Coins)
 {
 	CollectedCoinsText->SetText(
-		FText::FromString(FString::Printf(TEXT("+ %d"), Coins))
+		FText::FromString(FString::Printf(TEXT("+%d"), Coins))
 	);
+}
+
+void UGameOverWidget::SetGemsCollectedText(int Gems)
+{
+	CollectedGemsText->SetText(FText::FromString(FString::Printf(TEXT("+%d"), Gems)));
 }
 
 void UGameOverWidget::InitializeWidget()

@@ -13,5 +13,6 @@ enum class EBallType : uint8
 	TennisBall     UMETA(DisplayName = "Tennis Ball"),
 	Baseball       UMETA(DisplayName = "Baseball"),
 	BowlingBall    UMETA(DisplayName = "Bowling Ball"),
-	RugbyBall	   UMETA(DisplayName = "RugbyBall")
+	RugbyBall	   UMETA(DisplayName = "RugbyBall"),
+	Tomato   	   UMETA(DisplayName = "Tomato")
 };

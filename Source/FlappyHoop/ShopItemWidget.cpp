@@ -11,6 +11,7 @@
 #include "GameModeInterface.h"
 #include "ShopWidget.h"
 #include "Kismet/GameplayStatics.h"
+#include "InsufficientCoinsWidget.h"
 
 void UShopItemWidget::SetItemImage(UTexture2D* ItemTexture)
 {
@@ -23,7 +24,7 @@ void UShopItemWidget::SetItemPriceText(const FString& PriceText, bool AdjustFont
 
 	if (AdjustFont)
 	{
-		ItemPriceText->SetRenderTranslation(FVector2D(-54, 0));
+		ItemPriceText->SetRenderTranslation(FVector2D(-59, 0));
 		ItemPriceText->Font.Size = 35;
 	}
 }
@@ -34,36 +35,55 @@ void UShopItemWidget::SetCoinImageVisibility(bool Visible)
 	CoinImage->SetVisibility(SizeBoxVisibility);
 }
 
+void UShopItemWidget::PurchaseItem(FUserProgression UserProgression, int BallIndex, int32 GemsUsed)
+{
+	UserProgression.BallsOwned[BallIndex].IsPurchased = true;
+	UserProgression.TotalCoins = FMath::Max(0, UserProgression.TotalCoins - BallShopStruct.Price);
+	UserProgression.TotalGems = FMath::Max(0, UserProgression.TotalGems - GemsUsed);
+	UserProgression.BallType = BallShopStruct.BallType;
+	BallShopStruct.IsPurchased = true;
+	GameModeInterface->SetBallType(BallShopStruct.BallType);
+	GameModeInterface->ApplyBallSettings();
+	GameInstanceInterface->SaveUserProgression(UserProgression);
+	OnBallPurchased.Broadcast(UserProgression.BallsOwned);
+	UGameplayStatics::PlaySound2D(this, PurchaseSound);
+}
+
 void UShopItemWidget::OnBuyButtonClicked()
 {
 	if (GameInstanceInterface)
 	{
-		FUserProgression UserProgession = GameInstanceInterface->GetUserProgression();
+		FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
 
 		if (!BallShopStruct.IsPurchased)
 		{
-			if (UserProgession.TotalCoins >= BallShopStruct.Price)
-			{
-				int32 IndexFound = UserProgession.BallsOwned.Find(BallShopStruct);
+			IndexFound = UserProgression.BallsOwned.Find(BallShopStruct);
 
-				if (IndexFound != INDEX_NONE)
+			if (IndexFound != INDEX_NONE)
+			{
+				if (UserProgression.TotalCoins >= BallShopStruct.Price)
 				{
-					UserProgession.BallsOwned[IndexFound].IsPurchased = true;
-					UserProgession.TotalCoins -= BallShopStruct.Price;
-					UserProgession.BallType = BallShopStruct.BallType;
-					BallShopStruct.IsPurchased = true;
-					GameModeInterface->SetBallType(BallShopStruct.BallType);
-					GameModeInterface->ApplyBallSettings();
-					GameInstanceInterface->SaveUserProgression(UserProgession);
-					OnBallPurchased.Broadcast(UserProgession.BallsOwned);
-					UGameplayStatics::PlaySound2D(this, PurchaseSound);
+					PurchaseItem(UserProgression, IndexFound, 0);
+				}
+
+				else
+				{
+					UInsufficientCoinsWidget* InsufficientCoinsWidget = ParentWidget->InsufficientCoinsWidget;
+
+					int32 GemsNeeded = FMath::RoundToInt((BallShopStruct.Price - UserProgression.TotalCoins) * GemsNeededMultiplier);
+					InsufficientCoinsWidget->SetGemsNeeded(GemsNeeded);
+					InsufficientCoinsWidget->SetShopItemWidget(this);
+					InsufficientCoinsWidget->SetInsufficientCoinsText(GemsNeeded);
+					InsufficientCoinsWidget->SetGemsAmountText(GemsNeeded);
+					InsufficientCoinsWidget->SetVisibility(ESlateVisibility::Visible);
 				}
 			}
 		}
+
 		else
 		{
-			UserProgession.BallType = BallShopStruct.BallType;
-			GameInstanceInterface->SaveUserProgression(UserProgession);
+			UserProgression.BallType = BallShopStruct.BallType;
+			GameInstanceInterface->SaveUserProgression(UserProgression);
 			GameModeInterface->SetBallType(BallShopStruct.BallType);
 			GameModeInterface->ApplyBallSettings();
 			UpdateBorderColor();

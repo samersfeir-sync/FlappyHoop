@@ -17,6 +17,7 @@ class IGameInstanceInterface;
 class USecondChanceWidget;
 class USettingsWidget;
 class UShopWidget;
+class UTotalGemsWidget;
 
 UENUM(BlueprintType)
 enum class EWidgetState : uint8
@@ -148,12 +149,15 @@ private:
 	UTotalCoinsWidget* TotalCoinsWidget;
 
 	UPROPERTY(meta = (BindWidget))
+	UTotalGemsWidget* TotalGemsWidget;
+
+	UPROPERTY(meta = (BindWidget))
 	UShopWidget* ShopWidget;
 
 	UFUNCTION()
 	void ShowShopWidget();
 
-	void UpdateCoinUI();
+	void UpdateCollectiblesUI(bool bCoin);
 
 	EWidgetState CurrentWidgetState = EWidgetState::MainMenu;
 

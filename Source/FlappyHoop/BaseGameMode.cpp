@@ -9,6 +9,7 @@
 #include "GameInstanceInterface.h"
 #include "Ball.h"
 #include "Coins.h"
+#include "Gems.h"
 #include "Ads/AGAdLibrary.h"
 #include "Interface/AGInterstitialAdInterface.h"
 #include "Interface/AGRewardedAdInterface.h"
@@ -24,6 +25,7 @@ void ABaseGameMode::ResetGame()
 	bTimeEnded = false;
 	bCanWatchAd = true;
 	CollectedCoins = 0;
+	CollectedGems = 0;
 	LoadInterstitialAd();
 	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
 }
@@ -52,6 +54,7 @@ void ABaseGameMode::EndGame()
 	}
 
 	UserProgression.TotalCoins += CollectedCoins;
+	UserProgression.TotalGems += CollectedGems;
 	GameInstanceInterface->SaveUserProgression(UserProgression);
 	GameWidgetInstance->ShowGameOverWidget(true);
 }
@@ -69,21 +72,31 @@ int32 ABaseGameMode::GetTotalCoins() const
 	return GameInstanceInterface->GetUserProgression().TotalCoins;
 }
 
+int32 ABaseGameMode::GetTotalGems() const
+{
+	return GameInstanceInterface->GetUserProgression().TotalGems;
+}
+
 void ABaseGameMode::AddCoin()
 {
 	CollectedCoins++;
 }
 
+void ABaseGameMode::AddGem()
+{
+	CollectedGems++;
+}
+
 void ABaseGameMode::ActivateCoin()
 {
-	if (DefaultCoin->IsCoinActive())
+	if (DefaultCoin->IsCoinActive() || DefaultGem->IsCoinActive())
 		return;
 
 	float Roll = FMath::FRandRange(0.0f, 100.0f);
 
-	if (Roll <= CoinChancePercent)
+	if (Roll <= CollectibleChancePercent)
 	{
-		DefaultCoin->ActivateCoin(true);
+		(FMath::FRandRange(0.0f, 100.0f) <= CoinChancePercent ? DefaultCoin : DefaultGem)->ActivateCoin(true);
 	}
 }
 
@@ -127,6 +140,7 @@ void ABaseGameMode::BeginPlay()
 
 	DefaultBall = Cast<ABall>(UGameplayStatics::GetActorOfClass(World, ABall::StaticClass()));
 	DefaultCoin = Cast<ACoins>(UGameplayStatics::GetActorOfClass(World, ACoins::StaticClass()));
+	DefaultGem = Cast<AGems>(UGameplayStatics::GetActorOfClass(World, AGems::StaticClass()));
 
 	GameInstanceInterface = UFunctionsLibrary::GetGameInstanceInterface(World);
 
@@ -246,3 +260,20 @@ void ABaseGameMode::StopInterstitialTimer()
 {
 	GetWorld()->GetTimerManager().ClearTimer(InterstitialAdTimer);
 }
+
+#if WITH_EDITOR
+void ABaseGameMode::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	FName PropertyName = (PropertyChangedEvent.Property != nullptr)
+		? PropertyChangedEvent.Property->GetFName()
+		: NAME_None;
+
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(ABaseGameMode, CoinChancePercent))
+	{
+		CoinChancePercent = FMath::Clamp(CoinChancePercent, 0.0f, 100.0f);
+		GemChancePercent = 100.0f - CoinChancePercent;
+	}
+}
+#endif

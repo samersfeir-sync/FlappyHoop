@@ -17,6 +17,9 @@ struct FUserProgression
     int32 TotalCoins = 0;
 
     UPROPERTY(EditDefaultsOnly)
+	int32 TotalGems = 0;
+
+    UPROPERTY(EditDefaultsOnly)
     TArray<FBallsShopStruct> BallsOwned;
 
     UPROPERTY(EditDefaultsOnly)

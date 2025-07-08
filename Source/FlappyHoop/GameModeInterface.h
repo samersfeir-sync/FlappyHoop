@@ -21,7 +21,7 @@ DECLARE_MULTICAST_DELEGATE(FOnViewportFetched);
 DECLARE_MULTICAST_DELEGATE(FOnGameReset);
 DECLARE_MULTICAST_DELEGATE(FOnPointScored);
 DECLARE_MULTICAST_DELEGATE(FOnTimeEnded);
-DECLARE_MULTICAST_DELEGATE(FOnCoinCollected);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCoinCollected, bool);
 DECLARE_MULTICAST_DELEGATE(FOnSecondChanceGranted);
 
 class FLAPPYHOOP_API IGameModeInterface
@@ -54,8 +54,11 @@ public:
 	virtual EBallType GetBallType() const = 0;
 	virtual FOnCoinCollected& OnCoinCollectedDelegate() = 0;
 	virtual int32 GetTotalCoins() const = 0;
+	virtual int32 GetTotalGems() const = 0;
 	virtual void AddCoin() = 0;
+	virtual void AddGem() = 0;
 	virtual int32 GetCollectedCoins() const = 0;
+	virtual int32 GetCollectedGems() const = 0;
 	virtual void ActivateCoin() = 0;
 	virtual IGameInstanceInterface* GetGameInstanceInterface() const = 0;
 	virtual FOnSecondChanceGranted& OnSecondChanceGrantedDelegate() = 0;

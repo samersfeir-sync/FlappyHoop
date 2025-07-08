@@ -10,8 +10,10 @@
 class UButton;
 class UUniformGridPanel;
 class UTotalCoinsWidget;
+class UTotalGemsWidget;
 class IGameModeInterface;
 class UShopItemWidget;
+class UInsufficientCoinsWidget;
 
 UCLASS()
 class FLAPPYHOOP_API UShopWidget : public UUserWidget
@@ -24,6 +26,12 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTotalCoinsWidget* TotalCoinsWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	UTotalGemsWidget* TotalGemsWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	UInsufficientCoinsWidget* InsufficientCoinsWidget;
 
 private:
 

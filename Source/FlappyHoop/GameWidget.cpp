@@ -18,6 +18,7 @@
 #include "GameInstanceInterface.h"
 #include "SecondChanceWidget.h"
 #include "SettingsWidget.h"
+#include "TotalGemsWidget.h"
 
 void UGameWidget::NativeConstruct()
 {
@@ -28,14 +29,15 @@ void UGameWidget::NativeConstruct()
 
 	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 	UpdateHighScoreUI();
-	UpdateCoinUI();
+	UpdateCollectiblesUI(true); //coins
+	UpdateCollectiblesUI(false); //gems
 
 	if (GameModeInterface)
 	{
 		PlayButton->OnClicked.AddDynamic(this, &UGameWidget::OnPlayClicked);
 		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
 		GameModeInterface->OnPointScoredDelegate().AddUObject(this, &UGameWidget::OnPointScored);
-		GameModeInterface->OnCoinCollectedDelegate().AddUObject(this, &UGameWidget::UpdateCoinUI);
+		GameModeInterface->OnCoinCollectedDelegate().AddUObject(this, &UGameWidget::UpdateCollectiblesUI);
 		GameModeInterface->OnSecondChanceGrantedDelegate().AddUObject(this, &UGameWidget::PauseGameAfterRewardAD);
 		GameInstanceInterface = GameModeInterface->GetGameInstanceInterface();
 	}
@@ -119,6 +121,9 @@ void UGameWidget::ShowGameOverWidget(bool bShow)
 
 		int32 CollectedCoins = GameModeInterface->GetCollectedCoins();
 		GameOverWidget->SetCoinsCollectedText(CollectedCoins);
+
+		int32 CollectedGems = GameModeInterface->GetCollectedGems();
+		GameOverWidget->SetGemsCollectedText(CollectedGems);
 	}
 }
 
@@ -166,14 +171,20 @@ void UGameWidget::ShowShopWidget()
 
 	int32 TotalCoins = GameModeInterface->GetTotalCoins();
 	ShopWidget->TotalCoinsWidget->UpdateCoinsText(TotalCoins);
+	int32 TotalGems = GameModeInterface->GetTotalGems();
+	ShopWidget->TotalGemsWidget->UpdateGemsText(TotalGems);
 }
 
-void UGameWidget::UpdateCoinUI()
+void UGameWidget::UpdateCollectiblesUI(bool bCoin)
 {
-	int32 TotalCoins = GameModeInterface->GetTotalCoins();
-	int32 CollectedCoins = GameModeInterface->GetCollectedCoins();
-	int32 TempTotalCoins = TotalCoins + CollectedCoins;
-	TotalCoinsWidget->UpdateCoinsText(TempTotalCoins);
+	int32 Total = bCoin ? GameModeInterface->GetTotalCoins() : GameModeInterface->GetTotalGems();
+	int32 Collected = bCoin ? GameModeInterface->GetCollectedCoins() : GameModeInterface->GetCollectedGems();
+	int32 TempTotal = Total + Collected;
+
+	if (bCoin)
+		TotalCoinsWidget->UpdateCoinsText(TempTotal);
+	else
+		TotalGemsWidget->UpdateGemsText(TempTotal);
 }
 
 void UGameWidget::PauseGameAfterRewardAD()
@@ -196,6 +207,7 @@ void UGameWidget::EnablePlayButton()
 void UGameWidget::ApplyWidgetState(EWidgetState State)
 {
 	int32 TotalCoins = GameModeInterface->GetTotalCoins();
+	int32 TotalGems = GameModeInterface->GetTotalGems();
 
 	switch (State)
 	{
@@ -211,6 +223,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState State)
 		PauseButton->SetVisibility(ESlateVisibility::Hidden);
 		TimeProgressBar->SetVisibility(ESlateVisibility::Hidden);
 		TotalCoinsWidget->SetVisibility(ESlateVisibility::Hidden);
+		TotalGemsWidget->SetVisibility(ESlateVisibility::Hidden);
 		ScoreText->SetVisibility(ESlateVisibility::Hidden);
 		BlackBorder->SetVisibility(ESlateVisibility::Hidden);
 		break;
@@ -227,6 +240,8 @@ void UGameWidget::ApplyWidgetState(EWidgetState State)
 		TimeProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
 		TotalCoinsWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		TotalCoinsWidget->UpdateCoinsText(TotalCoins);
+		TotalGemsWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		TotalGemsWidget->UpdateGemsText(TotalGems);
 		ScoreText->SetVisibility(ESlateVisibility::HitTestInvisible);
 		break;
 

@@ -84,6 +84,27 @@ void UGameWidget::ShowSecondChanceWidget(bool bShow)
 		return;
 	}
 
+	bool bCanWatchAd = GameModeInterface->GetCanWatchAd();
+	SecondChanceWidget->WatchAdButton->SetIsEnabled(bCanWatchAd);
+	
+	int32 GemsNeeded = GameModeInterface->GetGemsNeededForSecondChance();
+	int32 TotalGems = GameModeInterface->GetTotalGems();
+	bool bCanUseGems = TotalGems >= GemsNeeded;
+	SecondChanceWidget->GemButton->SetIsEnabled(bCanUseGems);
+	
+	FString GemText = FString::Printf(TEXT("%d gem%s"), GemsNeeded, GemsNeeded == 1 ? TEXT("") : TEXT("s"));
+	FString UseGemsOnly = FString::Printf(TEXT("Don't give up yet! Use <CyanText>%s</> for a second shot!"), *GemText);
+	FString BothOptions = FString::Printf(TEXT("Don't give up yet! Watch an ad or use <CyanText>%s</> for a second shot!"), *GemText);
+	FString WatchAdOnly = FString::Printf(TEXT("Don't give up yet! Watch an ad for a second shot!"));
+
+	SecondChanceWidget->ChangeMainText(
+		bCanWatchAd && TotalGems >= GemsNeeded ? BothOptions :
+		bCanWatchAd ? WatchAdOnly :
+		UseGemsOnly,
+		false
+	);
+
+	SecondChanceWidget->TotalGemsWidget->UpdateGemsText(TotalGems);
 	SecondChanceWidget->StartSkipTimer();
 }
 
@@ -122,7 +143,7 @@ void UGameWidget::ShowGameOverWidget(bool bShow)
 		int32 CollectedCoins = GameModeInterface->GetCollectedCoins();
 		GameOverWidget->SetCoinsCollectedText(CollectedCoins);
 
-		int32 CollectedGems = GameModeInterface->GetCollectedGems();
+		int32 CollectedGems = GameModeInterface->GetCollectedGems() - GameModeInterface->GetGemsSpent();
 		GameOverWidget->SetGemsCollectedText(CollectedGems);
 	}
 }
@@ -178,17 +199,18 @@ void UGameWidget::ShowShopWidget()
 void UGameWidget::UpdateCollectiblesUI(bool bCoin)
 {
 	int32 Total = bCoin ? GameModeInterface->GetTotalCoins() : GameModeInterface->GetTotalGems();
-	int32 Collected = bCoin ? GameModeInterface->GetCollectedCoins() : GameModeInterface->GetCollectedGems();
-	int32 TempTotal = Total + Collected;
+	int32 CollectedCoins = GameModeInterface->GetCollectedCoins();
+	int32 TempTotalCoins = Total + CollectedCoins;
 
 	if (bCoin)
-		TotalCoinsWidget->UpdateCoinsText(TempTotal);
+		TotalCoinsWidget->UpdateCoinsText(TempTotalCoins);
 	else
-		TotalGemsWidget->UpdateGemsText(TempTotal);
+		TotalGemsWidget->UpdateGemsText(Total);
 }
 
 void UGameWidget::PauseGameAfterRewardAD()
 {
+	TotalGemsWidget->UpdateGemsText(GameModeInterface->GetTotalGems());
 	TimeProgressBar->SetPercent(1.0f);
 	World->GetTimerManager().UnPauseTimer(GameTimer);
 	PauseGame();

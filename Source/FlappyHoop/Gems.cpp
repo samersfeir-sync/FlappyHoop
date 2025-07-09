@@ -5,6 +5,7 @@
 #include "GameModeInterface.h"
 #include "BallInterface.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameInstanceInterface.h"
 
 AGems::AGems()
 {
@@ -31,6 +32,7 @@ void AGems::OnCoinBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 			GameModeInterface->AddGem();
 			GameModeInterface->OnCoinCollectedDelegate().Broadcast(false);
 		}
+
 		UGameplayStatics::PlaySound2D(this, PickUpSound);
 	}
 }

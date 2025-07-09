@@ -7,6 +7,10 @@
 #include "Components/CircularThrobber.h"
 #include "GameModeInterface.h"
 #include "FunctionsLibrary.h"
+#include "Components/RichTextBlock.h"
+#include "UserProgression.h"
+#include "Ads/AGRewardItem.h"
+#include "GameInstanceInterface.h"
 
 void USecondChanceWidget::NativeConstruct()
 {
@@ -16,6 +20,7 @@ void USecondChanceWidget::NativeConstruct()
 
 	SkipAdButton->OnClicked.AddDynamic(this, &USecondChanceWidget::SkipAdButtonClicked);
 	WatchAdButton->OnClicked.AddDynamic(this, &USecondChanceWidget::WatchAdButtonClicked);
+	GemButton->OnClicked.AddDynamic(this, &USecondChanceWidget::GemButtonClicked);
 }
 
 void USecondChanceWidget::StartSkipTimer()
@@ -27,7 +32,6 @@ void USecondChanceWidget::ResetWidget()
 {
 	GetWorld()->GetTimerManager().ClearTimer(SkipTimerHandle);
 	SetVisibility(ESlateVisibility::Hidden);
-	ChangeMainText("Don't give up yet! Watch an ad for a second shot!", FLinearColor::White);
 	MaxSkipTime = 12;
 	SkipCountdownText->SetText(FText::AsNumber(MaxSkipTime));
 	LoadingAdThrobber->SetVisibility(ESlateVisibility::Hidden);
@@ -59,6 +63,7 @@ void USecondChanceWidget::WatchAdButtonClicked()
 		SkipCountdownText->SetVisibility(ESlateVisibility::Hidden);
 		WatchAdButton->SetIsEnabled(false);
 		SkipAdButton->SetIsEnabled(false);
+		GemButton->SetIsEnabled(false);
 		GameModeInterface->LoadRewardedAd();
 	}
 }
@@ -73,6 +78,23 @@ void USecondChanceWidget::SkipAdButtonClicked()
 	}
 }
 
+void USecondChanceWidget::GemButtonClicked()
+{
+	IGameInstanceInterface* GameInstanceInterface = GameModeInterface->GetGameInstanceInterface();
+	FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
+	int32 GemsNeeded = GameModeInterface->GetGemsNeededForSecondChance();
+	UserProgression.TotalGems -= GemsNeeded;
+	GameInstanceInterface->SaveUserProgression(UserProgression);
+	GameModeInterface->IncrementGemsSpentCount(GemsNeeded);
+
+	GameModeInterface->IncrementRetryCount();
+	GameModeInterface->IncrementGemsNeededForSecondChance();
+
+	FRewardItem Reward;
+	GameModeInterface->GrantSecondChance(Reward);
+	ResetWidget();
+}
+
 void USecondChanceWidget::RewardAdFailed(int ErrorCode, FString ErrorMessage)
 {
 	if (GameModeInterface)
@@ -81,15 +103,20 @@ void USecondChanceWidget::RewardAdFailed(int ErrorCode, FString ErrorMessage)
 		SkipCountdownText->SetVisibility(ESlateVisibility::Visible);
 		WatchAdButton->SetIsEnabled(true);
 		SkipAdButton->SetIsEnabled(true);
-		ChangeMainText(ErrorMessage, FLinearColor::Red);
+		GemButton->SetIsEnabled(true);
+		ChangeMainText(ErrorMessage, true);
 		MaxSkipTime = 12;
 		SkipCountdownText->SetText(FText::AsNumber(MaxSkipTime));
 		StartSkipTimer();
 	}
 }
 
-void USecondChanceWidget::ChangeMainText(FString NewText, FLinearColor NewColor)
+void USecondChanceWidget::ChangeMainText(FString NewText, bool bErrorText)
 {
+	if (bErrorText)
+	{
+		NewText = FString::Printf(TEXT("<RedText>%s</>"), *NewText);
+	}
+
 	MainText->SetText(FText::FromString(NewText));
-	MainText->SetColorAndOpacity(NewColor);
 }

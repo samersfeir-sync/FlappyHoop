@@ -84,11 +84,21 @@ public:
 	virtual void CreateSecondChanceWidget() override;
 
 	UFUNCTION()
-	void GrantSecondChance(FRewardItem Reward);
+	virtual void GrantSecondChance(FRewardItem Reward) override;
 
 	virtual bool GetCanWatchAd() const override { return bCanWatchAd; }
 
 	virtual void SetCanWatchAd(bool bNewCanWatchAd) override { bCanWatchAd = bNewCanWatchAd; }
+
+	virtual int32 GetGemsNeededForSecondChance() const override { return GemsNeededForSecondChance; }
+
+	virtual void IncrementRetryCount() override { RetryCount++; }
+
+	virtual void IncrementGemsNeededForSecondChance() override;
+
+	virtual int32 GetGemsSpent() const override { return GemsSpent; }
+
+	virtual void IncrementGemsSpentCount(int32 IncrementBy) override { GemsSpent += IncrementBy; }
 
 protected:
 
@@ -187,5 +197,19 @@ private:
 	UPROPERTY()
 	USecondChanceWidget* SecondChanceWidgetInstance;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Second Chance")
 	bool bCanWatchAd = true;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Second Chance")
+	int32 BaseGemCost = 1;
+
+	int32 GemsNeededForSecondChance;
+
+	int32 RetryCount = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Second Chance")
+	float GrowthRate = 1.5f;
+
+	int32 GemsSpent = 0;
 };

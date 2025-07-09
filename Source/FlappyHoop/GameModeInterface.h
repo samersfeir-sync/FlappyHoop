@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "BallType.h"
+#include "Ads/AGRewardItem.h"
 #include "GameModeInterface.generated.h"
 
 class IGameInstanceInterface;
@@ -66,4 +67,10 @@ public:
 	virtual void CreateSecondChanceWidget() = 0;
 	virtual bool GetCanWatchAd() const = 0;
 	virtual void SetCanWatchAd(bool bNewCanWatchAd) = 0;
+	virtual int32 GetGemsNeededForSecondChance() const = 0;
+	virtual void IncrementRetryCount() = 0;
+	virtual void IncrementGemsNeededForSecondChance() = 0;
+	virtual void GrantSecondChance(FRewardItem Reward) = 0;
+	virtual int32 GetGemsSpent() const = 0;
+	virtual void IncrementGemsSpentCount(int32 IncrementBy) = 0;
 };

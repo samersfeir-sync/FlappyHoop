@@ -28,7 +28,8 @@ void UGameOverWidget::SetCoinsCollectedText(int Coins)
 
 void UGameOverWidget::SetGemsCollectedText(int Gems)
 {
-	CollectedGemsText->SetText(FText::FromString(FString::Printf(TEXT("+%d"), Gems)));
+	FString Prefix = (Gems >= 0) ? TEXT("+") : TEXT("-");
+	CollectedGemsText->SetText(FText::FromString(FString::Printf(TEXT("%s%d"), *Prefix, FMath::Abs(Gems))));
 }
 
 void UGameOverWidget::InitializeWidget()

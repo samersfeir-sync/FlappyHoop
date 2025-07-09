@@ -26,6 +26,9 @@ void ABaseGameMode::ResetGame()
 	bCanWatchAd = true;
 	CollectedCoins = 0;
 	CollectedGems = 0;
+	GemsSpent = 0;
+	RetryCount = 0;
+	GemsNeededForSecondChance = BaseGemCost;
 	LoadInterstitialAd();
 	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
 }
@@ -54,7 +57,6 @@ void ABaseGameMode::EndGame()
 	}
 
 	UserProgression.TotalCoins += CollectedCoins;
-	UserProgression.TotalGems += CollectedGems;
 	GameInstanceInterface->SaveUserProgression(UserProgression);
 	GameWidgetInstance->ShowGameOverWidget(true);
 }
@@ -85,6 +87,9 @@ void ABaseGameMode::AddCoin()
 void ABaseGameMode::AddGem()
 {
 	CollectedGems++;
+	FUserProgression UseProgression = GameInstanceInterface->GetUserProgression();
+	UseProgression.TotalGems += 1;
+	GameInstanceInterface->SaveUserProgression(UseProgression);
 }
 
 void ABaseGameMode::ActivateCoin()
@@ -131,12 +136,18 @@ void ABaseGameMode::CreateSecondChanceWidget()
 	}
 }
 
+void ABaseGameMode::IncrementGemsNeededForSecondChance()
+{
+	GemsNeededForSecondChance = FMath::CeilToInt(BaseGemCost * FMath::Pow(GrowthRate, RetryCount));
+}
+
 void ABaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
 	World = GetWorld();
 	FetchViewportSize();
+	GemsNeededForSecondChance = BaseGemCost;
 
 	DefaultBall = Cast<ABall>(UGameplayStatics::GetActorOfClass(World, ABall::StaticClass()));
 	DefaultCoin = Cast<ACoins>(UGameplayStatics::GetActorOfClass(World, ACoins::StaticClass()));
@@ -232,6 +243,7 @@ void ABaseGameMode::ShowRewardedAdIfAvailable()
 	RewardedAdInterface->BindEventToOnUserEarnedReward(Delegate);
 	RewardedAdInterface->Show();
 	GameWidgetInstance->ShowSecondChanceWidget(false);
+	bCanWatchAd = false;
 }
 
 void ABaseGameMode::GrantSecondChance(FRewardItem Reward)

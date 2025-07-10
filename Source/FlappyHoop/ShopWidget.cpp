@@ -11,6 +11,7 @@
 #include "Components/Button.h"
 #include "Components/ScrollBox.h"
 #include "TotalGemsWidget.h"
+#include "GemShopWidget.h"
 
 void UShopWidget::NativeConstruct()
 {
@@ -22,6 +23,8 @@ void UShopWidget::NativeConstruct()
     TArray<FBallsShopStruct> BallsStruct = GameInstanceInterface->GetUserProgression().BallsOwned;
     FillItemContainer(BallsStruct);
     BackButton->OnClicked.AddDynamic(this, &UShopWidget::HideShopWidget);
+	BallsButton->OnClicked.AddDynamic(this, &UShopWidget::BallButtonClicked);
+	GemsButton->OnClicked.AddDynamic(this, &UShopWidget::GemButtonClicked);
 }
 
 
@@ -33,6 +36,8 @@ void UShopWidget::NativePreConstruct()
     {
         FillItemContainer(BallShopItems);
     }
+
+    FillGemsContainer();
 }
 
 void UShopWidget::FillItemContainer(TArray<FBallsShopStruct> BallsShopStruct)
@@ -80,4 +85,46 @@ void UShopWidget::HideShopWidget()
 {
     SetVisibility(ESlateVisibility::Hidden);
     ScrollBox->ScrollToStart();
+}
+
+void UShopWidget::FillGemsContainer()
+{
+    if (GemShopInfo.IsEmpty())
+        return;
+
+    const int GemsPerRow = 2;
+
+    for (int32 i = 0; i < GemShopInfo.Num(); ++i)
+    {
+		UGemShopWidget* NewGemItem = CreateWidget<UGemShopWidget>(this, GemShopWidgetClass);
+
+        if (NewGemItem)
+        {
+			NewGemItem->SetGemPrice(GemShopInfo[i].Price);
+			NewGemItem->SetGemAmount(GemShopInfo[i].Amount);
+			NewGemItem->SetGemImage(GemShopInfo[i].Image);
+
+            int32 Row = i / GemsPerRow;
+            int32 Column = i % GemsPerRow;
+            GemsGridPanel->AddChildToUniformGrid(NewGemItem, Row, Column);
+        }
+	}
+}
+
+void UShopWidget::BallButtonClicked()
+{
+    ItemsGridPanel->SetVisibility(ESlateVisibility::Visible);
+    GemsGridPanel->SetVisibility(ESlateVisibility::Collapsed);
+    BallsButton->SetIsEnabled(false);
+	GemsButton->SetIsEnabled(true);
+    ScrollBox->ScrollToStart();
+}
+
+void UShopWidget::GemButtonClicked()
+{
+    ItemsGridPanel->SetVisibility(ESlateVisibility::Collapsed);
+    GemsGridPanel->SetVisibility(ESlateVisibility::Visible);
+    BallsButton->SetIsEnabled(true);
+    GemsButton->SetIsEnabled(false);
+	ScrollBox->ScrollToStart();
 }

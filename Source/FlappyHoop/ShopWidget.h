@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "BallsShopStruct.h"
+#include "GemShopInfo.h"
 #include "ShopWidget.generated.h"
 
 class UButton;
@@ -45,6 +46,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UUniformGridPanel* ItemsGridPanel;
 
+	UPROPERTY(meta = (BindWidget))
+	UUniformGridPanel* GemsGridPanel;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UShopItemWidget> ShopItemWidgetClass;
 
@@ -63,4 +67,24 @@ private:
 	class UScrollBox* ScrollBox;
 
 	IGameModeInterface* GameModeInterface = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FGemShopInfo> GemShopInfo;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* BallsButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* GemsButton;
+
+	void FillGemsContainer();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UGemShopWidget> GemShopWidgetClass;
+
+	UFUNCTION()
+	void BallButtonClicked();
+
+	UFUNCTION()
+	void GemButtonClicked();
 };

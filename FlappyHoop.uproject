@@ -36,6 +36,13 @@
 			"Name": "MonetizationGoodies",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/49fe739557874e13a2b68496d646456b"
+		},
+		{
+			"Name": "OnlineSubsystemGooglePlay",
+			"Enabled": false,
+			"SupportedTargetPlatforms": [
+				"Android"
+			]
 		}
 	]
 }

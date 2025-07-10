@@ -11,6 +11,7 @@
 #include "UserProgression.h"
 #include "Ads/AGRewardItem.h"
 #include "GameInstanceInterface.h"
+#include "ShopWidget.h"
 
 void USecondChanceWidget::NativeConstruct()
 {

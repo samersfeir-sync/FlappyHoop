@@ -194,6 +194,11 @@ void UGameWidget::ShowShopWidget()
 	ShopWidget->TotalCoinsWidget->UpdateCoinsText(TotalCoins);
 	int32 TotalGems = GameModeInterface->GetTotalGems();
 	ShopWidget->TotalGemsWidget->UpdateGemsText(TotalGems);
+
+#if PLATFORM_ANDROID
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Connecting to Shop..."));
+	ShopWidget->StartConnection();
+#endif
 }
 
 void UGameWidget::UpdateCollectiblesUI(bool bCoin)

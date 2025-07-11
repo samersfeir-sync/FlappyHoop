@@ -18,8 +18,11 @@ struct FGemShopInfo
 	UPROPERTY(EditDefaultsOnly)
 	UTexture2D* Image;
 
+	UPROPERTY(EditDefaultsOnly)
+	FString ProductId;
+
 	FGemShopInfo()
-		: Price(""), Amount(0), Image(nullptr)
+		: Price(""), Amount(0), Image(nullptr), ProductId("")
 	{
 	}
 };

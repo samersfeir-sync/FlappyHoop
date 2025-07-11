@@ -9,6 +9,7 @@
 class UButton;
 class UTextBlock;
 class UImage;
+class UShopWidget;
 
 UCLASS()
 class FLAPPYHOOP_API UGemShopWidget : public UUserWidget
@@ -21,8 +22,12 @@ public:
 	void SetGemPrice(FString Price);
 	void SetGemAmount(int32 Amount);
 	void SetGemImage(UTexture2D* Image);
+	void SetProductId(const FString& Id) { ProductId = Id; }
+	void SetParentWidget(UShopWidget* Parent) { ParentWidget = Parent; }
 
 private:
+
+	virtual void NativeConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* BuyButton;
@@ -35,4 +40,12 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* GemImage;
+
+	UFUNCTION()
+	void OnBuyButtonClicked();
+
+	UPROPERTY()
+	UShopWidget* ParentWidget = nullptr;
+
+	FString ProductId;
 };

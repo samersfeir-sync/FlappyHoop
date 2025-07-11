@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "BallsShopStruct.h"
 #include "GemShopInfo.h"
+#include "MGAndroidBillingClient.h"
+#include "MGAndroidBillingLibrary.h"
+#include "MGAndroidBillingResult.h"
 #include "ShopWidget.generated.h"
 
 class UButton;
@@ -33,6 +36,11 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UInsufficientCoinsWidget* InsufficientCoinsWidget;
+
+	UFUNCTION()
+	void StartConnection();
+
+	void QueryProductDetails(FString ProductId);
 
 private:
 
@@ -87,4 +95,53 @@ private:
 
 	UFUNCTION()
 	void GemButtonClicked();
+
+	UPROPERTY()
+	UMGAndroidBillingClient* AndroidBillingClient = nullptr;
+
+	FOnPurchasesUpdated OnPurchaseUpdatedDelegate;
+
+	UFUNCTION()
+	void OnPurchaseUpdated(UMGAndroidBillingResult* Result, const TArray<UMGAndroidPurchase*>& Purchases);
+
+	bool BillingResponseOK(UMGAndroidBillingResult* BillingResult) const;
+
+	bool CheckBillingClient() const;
+
+	FAndroidBillingResultDelegate OnAcknowledgeCompletedDelegate;
+	FAndroidBillingResultDelegate OnBillingSetupFinishedDelegate;
+	FAndroidBillingVoidDelegate OnBillingDisconnectedDelegate;
+
+	UFUNCTION()
+	void OnAcknowledgeCompleted(UMGAndroidBillingResult* Result);
+
+	FString PurchaseToken = "";
+
+	UPROPERTY()
+	UMGAndroidPurchase* CurrentPurchase;
+
+	void PurchaseSuccess();
+
+	UFUNCTION()
+	void BillingSetupFinished(UMGAndroidBillingResult* Result);
+
+	FAndroidPurchasesDelegate OnAndroidPurchasesDelegate;
+
+	FAndroidProductDetailsDelegate OnAndroidProductDetailsDelegate;
+
+	UFUNCTION()
+	void OnQueryProductDetailsCompleted(UMGAndroidBillingResult* Result, const TArray<UMGAndroidProductDetails*>& ProductDetails);
+
+	FAndroidBillingResultDelegate OnBillingFlowStartedDelegate;
+
+	TArray<FString> ProductIds;
+
+	FAndroidConsumeResultDelegate OnCosumeDelegate;
+
+	UFUNCTION()
+	void GemsConsumed(UMGAndroidBillingResult* Result, const FString& Token);
+
+	const FGemShopInfo* ProductFound;
+
+	static const TCHAR* BillingResponseCodeToString(EMGAndroidBillingResponseCode Code);
 };

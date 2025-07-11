@@ -8,7 +8,7 @@ public class FlappyHoop : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AdmobGoodies", "MoviePlayer" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AdmobGoodies", "MoviePlayer", "MonetizationGoodies" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

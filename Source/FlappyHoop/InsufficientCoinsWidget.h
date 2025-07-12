@@ -9,6 +9,7 @@
 class UButton;
 class UTextBlock;
 class UShopItemWidget;
+class UShopWidget;
 
 UCLASS()
 class FLAPPYHOOP_API UInsufficientCoinsWidget : public UUserWidget
@@ -21,6 +22,7 @@ public:
 	void SetGemsAmountText(int32 GemsAmount);
 	void SetGemsNeeded(int32 NewGemsNeeded) { GemsNeeded = NewGemsNeeded; }
 	void SetShopItemWidget(UShopItemWidget* NewShopItemWidget) { ShopItemWidget = NewShopItemWidget; }
+	void SetShopWidget(UShopWidget* NewShopWidget) { ShopWidget = NewShopWidget; }
 
 private:
 
@@ -49,4 +51,7 @@ private:
 	int32 GemsNeeded = 0;
 	
 	UShopItemWidget* ShopItemWidget = nullptr;
+
+	UPROPERTY()
+	UShopWidget* ShopWidget = nullptr;
 };

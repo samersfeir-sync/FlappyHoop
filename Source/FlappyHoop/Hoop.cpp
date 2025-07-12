@@ -6,6 +6,7 @@
 #include "GameModeInterface.h"
 #include "FunctionsLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "MyPlayerController.h"
 
 // Sets default values
 AHoop::AHoop()
@@ -30,10 +31,15 @@ AHoop::AHoop()
 void AHoop::BeginPlay()
 {
 	Super::BeginPlay();
+
+	World = GetWorld();
+
 	ScoreCylinder->OnComponentBeginOverlap.AddDynamic(this, &AHoop::OnScoreCylinderBeginOverlap);
 
 	GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
+	if(APlayerController* BasePlayerController = UGameplayStatics::GetPlayerController(this, 0))
+		PlayerController = Cast<AMyPlayerController>(BasePlayerController);
 }
 
 // Called every frame
@@ -55,25 +61,40 @@ void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent
 {
 	if (OtherActor && OtherActor->GetClass()->ImplementsInterface(UBallInterface::StaticClass()))
 	{
-		if (IBallInterface* BallInterface = Cast<IBallInterface>(OtherActor))
+		if (!BallInterface)
 		{
-			FVector BallVelocity = BallInterface->GetBallVelocity();
-
-			if (BallVelocity.Z < 0)
-			{
-				BallInterface->ChangeBallDirection();
-				UGameplayStatics::PlaySound2D(this, ScoreSound);
-
-				if (GameModeInterface)
-				{
-					GameModeInterface->SetNewGameTime();
-					GameModeInterface->UpdateScore();
-					GameModeInterface->SetTimeEndedBool(false);
-					GameModeInterface->OnPointScoredDelegate().Broadcast();
-					GameModeInterface->UpdateScoreMultiplier();
-					GameModeInterface->ActivateCoin();
-				}
-			}
+			BallInterface = Cast<IBallInterface>(OtherActor);
 		}
+
+		FVector BallVelocity = BallInterface->GetBallVelocity();
+
+		if (BallVelocity.Z < 0)
+		{
+			if (PlayerController)
+			{
+				PlayerController->DisableControllerInput();
+			}
+			
+			World->GetTimerManager().SetTimer(GameModeInterface->GetSwitchSidesTimerHandle(), this, &AHoop::SwitchSides, SwitchSidesDelay, false);
+		}
+	}
+}
+
+void AHoop::SwitchSides()
+{
+	BallInterface->ChangeBallDirection();
+
+	PlayerController->EnableControllerInput();
+
+	UGameplayStatics::PlaySound2D(this, ScoreSound);
+
+	if (GameModeInterface)
+	{
+		GameModeInterface->SetNewGameTime();
+		GameModeInterface->UpdateScore();
+		GameModeInterface->SetTimeEndedBool(false);
+		GameModeInterface->OnPointScoredDelegate().Broadcast();
+		GameModeInterface->UpdateScoreMultiplier();
+		GameModeInterface->ActivateCoin();
 	}
 }

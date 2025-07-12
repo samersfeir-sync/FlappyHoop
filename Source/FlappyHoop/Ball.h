@@ -37,7 +37,7 @@ public:
 
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	class UProjectileMovementComponent* ProjectileMovement;
 
 	UPROPERTY(EditAnywhere, Category = "Parameters")
@@ -49,8 +49,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Parameters")
 	int Direction = -1;
 
-	APlayerController* PlayerController = nullptr;
-	APlayerCameraManager* CameraManager = nullptr;
+	//APlayerController* PlayerController = nullptr;
+	//APlayerCameraManager* CameraManager = nullptr;
 
 	float YLocation = -500.0f;
 	FVector InitialBallLocation;

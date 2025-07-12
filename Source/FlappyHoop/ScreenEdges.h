@@ -60,6 +60,5 @@ private:
 
 	UPROPERTY(EditInstanceOnly, Category = "Parameters")
 	class ABall* Ball;
-
 	class AHoop* HoopChildActor = nullptr;
 };

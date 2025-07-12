@@ -27,7 +27,7 @@ public:
 
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* HoopMesh;
 
 	UPROPERTY(EditAnywhere, Category = "Components")
@@ -44,4 +44,15 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* ScoreSound;
+
+	class IBallInterface* BallInterface = nullptr;
+
+	void SwitchSides();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Parameters")
+	float SwitchSidesDelay = 0.2f;
+
+	class AMyPlayerController* PlayerController = nullptr;
+
+	UWorld* World = nullptr;
 };

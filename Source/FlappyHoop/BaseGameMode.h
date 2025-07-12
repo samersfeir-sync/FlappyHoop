@@ -100,13 +100,15 @@ public:
 
 	virtual void IncrementGemsSpentCount(int32 IncrementBy) override { GemsSpent += IncrementBy; }
 
+	FTimerHandle& GetSwitchSidesTimerHandle() override { return SwitchSidesTimerHandle; }
+
 protected:
 
 	virtual void BeginPlay() override;
 
-	virtual FVector2D GetViewportSize() const override { return ViewportSize; }
-
 private:
+
+	virtual FVector2D GetViewportSize() const override { return ViewportSize; }
 
 	UGameWidget* GameWidgetInstance = nullptr;
 
@@ -212,4 +214,6 @@ private:
 	float GrowthRate = 1.5f;
 
 	int32 GemsSpent = 0;
+
+	FTimerHandle SwitchSidesTimerHandle;
 };

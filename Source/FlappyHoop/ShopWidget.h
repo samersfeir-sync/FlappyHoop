@@ -42,6 +42,9 @@ public:
 
 	void QueryProductDetails(FString ProductId);
 
+	UFUNCTION()
+	void GemButtonClicked();
+
 private:
 
 	virtual void NativeConstruct() override;
@@ -92,9 +95,6 @@ private:
 
 	UFUNCTION()
 	void BallButtonClicked();
-
-	UFUNCTION()
-	void GemButtonClicked();
 
 	UPROPERTY()
 	UMGAndroidBillingClient* AndroidBillingClient = nullptr;

@@ -18,6 +18,7 @@
 #include "MGAndroidBillingFlowParameters.h"
 #include "MGAndroidWrapperObject.h"
 #include "MGAndroidProductDetails.h"
+#include "InsufficientCoinsWidget.h"
 
 void UShopWidget::NativeConstruct()
 {
@@ -31,6 +32,8 @@ void UShopWidget::NativeConstruct()
     BackButton->OnClicked.AddDynamic(this, &UShopWidget::HideShopWidget);
 	BallsButton->OnClicked.AddDynamic(this, &UShopWidget::BallButtonClicked);
 	GemsButton->OnClicked.AddDynamic(this, &UShopWidget::GemButtonClicked);
+
+    InsufficientCoinsWidget->SetShopWidget(this);
 
 #if PLATFORM_ANDROID
     OnBillingSetupFinishedDelegate.BindDynamic(this, &UShopWidget::BillingSetupFinished);

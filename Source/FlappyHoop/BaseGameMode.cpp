@@ -146,7 +146,7 @@ void ABaseGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	World = GetWorld();
-	FetchViewportSize();
+	//FetchViewportSize();
 	GemsNeededForSecondChance = BaseGemCost;
 
 	DefaultBall = Cast<ABall>(UGameplayStatics::GetActorOfClass(World, ABall::StaticClass()));

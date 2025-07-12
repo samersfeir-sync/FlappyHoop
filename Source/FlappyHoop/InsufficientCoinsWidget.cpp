@@ -8,6 +8,7 @@
 #include "GameInstanceInterface.h"
 #include "FunctionsLibrary.h"
 #include "ShopItemWidget.h"
+#include "ShopWidget.h"
 
 void UInsufficientCoinsWidget::SetInsufficientCoinsText(int32 GemCost)
 {
@@ -37,7 +38,8 @@ void UInsufficientCoinsWidget::OnGemsButtonClicked()
 
 	else
 	{
-		//go to gem purchase screen
+		OnCloseButtonClicked();
+		ShopWidget->GemButtonClicked();
 	}
 }
 

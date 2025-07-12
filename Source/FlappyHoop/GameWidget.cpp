@@ -35,7 +35,7 @@ void UGameWidget::NativeConstruct()
 	if (GameModeInterface)
 	{
 		PlayButton->OnClicked.AddDynamic(this, &UGameWidget::OnPlayClicked);
-		GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
+		//GameModeInterface->OnViewportFetchedDelegate().AddUObject(this, &UGameWidget::EnablePlayButton);
 		GameModeInterface->OnPointScoredDelegate().AddUObject(this, &UGameWidget::OnPointScored);
 		GameModeInterface->OnCoinCollectedDelegate().AddUObject(this, &UGameWidget::UpdateCollectiblesUI);
 		GameModeInterface->OnSecondChanceGrantedDelegate().AddUObject(this, &UGameWidget::PauseGameAfterRewardAD);

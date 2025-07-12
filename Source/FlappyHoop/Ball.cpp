@@ -45,13 +45,6 @@ void ABall::BeginPlay()
     YLocation = InitialBallLocation.Y;
     InitialBallVelocity = ProjectileMovement->Velocity;
 
-    PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    if (PlayerController)
-    {
-        CameraManager = PlayerController->PlayerCameraManager;
-    }
-
-
     GameModeInterface = UFunctionsLibrary::GetGameModeInterface(this);
 
     if (GameModeInterface)

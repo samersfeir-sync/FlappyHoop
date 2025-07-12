@@ -35,7 +35,10 @@ void AGround::BeginPlay()
 
 void AGround::OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (bAlreadyProcessedHit) return;
+	bool bSwitchSidesTimerActive = 
+		GetWorld()->GetTimerManager().IsTimerActive(GameModeInterface->GetSwitchSidesTimerHandle());
+
+	if (bAlreadyProcessedHit || bSwitchSidesTimerActive) return;
 
 	if (OtherActor->IsA(ABall::StaticClass()))
 	{

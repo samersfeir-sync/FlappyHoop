@@ -15,6 +15,9 @@ public:
 
 	AMyPlayerController();
 
+	void EnableControllerInput();
+	void DisableControllerInput();
+
 private:
 
 	virtual void BeginPlay() override;
@@ -25,8 +28,4 @@ private:
 	void HandleTouchPressed(ETouchIndex::Type FingerIndex, FVector Location);
 
 	class ABall* Ball = nullptr;
-
-	void EnableControllerInput();
-	void DisableControllerInput();
-
 };

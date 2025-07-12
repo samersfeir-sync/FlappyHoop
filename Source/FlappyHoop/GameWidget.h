@@ -168,4 +168,10 @@ private:
 
 	UFUNCTION()
 	void SettingsButtonClicked();
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* NoAdsButton;
+
+	UFUNCTION()
+	void NoAdsButtonClicked();
 };

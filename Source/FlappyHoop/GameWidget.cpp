@@ -49,6 +49,12 @@ void UGameWidget::NativeConstruct()
 	ShopButton->OnClicked.AddDynamic(this, &UGameWidget::ShowShopWidget);
 	SettingsButton->OnClicked.AddDynamic(this, &UGameWidget::SettingsButtonClicked);
 	PauseSettingsButton->OnClicked.AddDynamic(this, &UGameWidget::SettingsButtonClicked);
+	NoAdsButton->OnClicked.AddDynamic(this, &UGameWidget::NoAdsButtonClicked);
+
+#if PLATFORM_ANDROID
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Connecting to Shop..."));
+	ShopWidget->StartConnection();
+#endif
 }
 
 void UGameWidget::OnPlayClicked()
@@ -194,11 +200,6 @@ void UGameWidget::ShowShopWidget()
 	ShopWidget->TotalCoinsWidget->UpdateCoinsText(TotalCoins);
 	int32 TotalGems = GameModeInterface->GetTotalGems();
 	ShopWidget->TotalGemsWidget->UpdateGemsText(TotalGems);
-
-#if PLATFORM_ANDROID
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Connecting to Shop..."));
-	ShopWidget->StartConnection();
-#endif
 }
 
 void UGameWidget::UpdateCollectiblesUI(bool bCoin)
@@ -224,6 +225,14 @@ void UGameWidget::PauseGameAfterRewardAD()
 void UGameWidget::SettingsButtonClicked()
 {
 	SettingsWidget->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UGameWidget::NoAdsButtonClicked()
+{
+#if PLATFORM_ANDROID
+	const FString ProductId = TEXT("noads");
+	ShopWidget->QueryProductDetails(ProductId);
+#endif
 }
 
 void UGameWidget::EnablePlayButton()

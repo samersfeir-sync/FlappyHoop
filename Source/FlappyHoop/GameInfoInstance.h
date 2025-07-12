@@ -8,7 +8,6 @@
 #include "GameInfoInstance.generated.h"
 
 class UMySaveGame;
-class IAGBannerAdInterface;
 
 UCLASS()
 class FLAPPYHOOP_API UGameInfoInstance : public UGameInstance, public IGameInstanceInterface
@@ -23,6 +22,7 @@ public:
 	virtual FString GetBannerAdUnitID() const override { return BannerADUnitID; }
 	virtual FString GetInterstitialAdUnitID() const override { return InterstitialADUnitID; }
 	virtual FString GetRewardedAdUnitID() const override { return RewardedADUnitID; }
+	virtual const TScriptInterface<IAGBannerAdInterface> GetBannerAdInterface() const { return BannerAdInterface; }
 
 private:
 

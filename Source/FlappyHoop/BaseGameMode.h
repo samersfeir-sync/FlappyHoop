@@ -102,6 +102,8 @@ public:
 
 	FTimerHandle& GetSwitchSidesTimerHandle() override { return SwitchSidesTimerHandle; }
 
+	virtual void StopInterstitialTimer() override;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -192,8 +194,6 @@ private:
 
 	FTimerHandle InterstitialAdTimer;
 
-	void StopInterstitialTimer();
-
 	FOnSecondChanceGranted OnSecondChanceGranted;
 
 	UPROPERTY()
@@ -216,4 +216,8 @@ private:
 	int32 GemsSpent = 0;
 
 	FTimerHandle SwitchSidesTimerHandle;
+
+	void StartInterstitialTimer();
+
+	bool CanShowInterstitialAd() const;
 };

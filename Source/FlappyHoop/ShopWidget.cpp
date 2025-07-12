@@ -19,6 +19,7 @@
 #include "MGAndroidWrapperObject.h"
 #include "MGAndroidProductDetails.h"
 #include "InsufficientCoinsWidget.h"
+#include "GameModeInterface.h"
 
 void UShopWidget::NativeConstruct()
 {
@@ -285,7 +286,17 @@ void UShopWidget::PurchaseSuccess()
     if (ProductIds.IsEmpty())
         return;
 
-    FString ProductId = ProductIds[0];
+    const FString ProductId = ProductIds[0];
+
+    if (ProductId == "noads")
+    {
+		FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
+		UserProgression.bNoAds = true;
+		GameInstanceInterface->SaveUserProgression(UserProgression);
+        GameInstanceInterface->GetBannerAdInterface()->Destroy();
+		GameModeInterface->StopInterstitialTimer();
+        return;
+    }
 
     ProductFound = GemShopInfo.FindByPredicate([&](const FGemShopInfo& Info)
         {

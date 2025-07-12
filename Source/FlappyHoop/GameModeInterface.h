@@ -74,4 +74,5 @@ public:
 	virtual int32 GetGemsSpent() const = 0;
 	virtual void IncrementGemsSpentCount(int32 IncrementBy) = 0;
 	virtual FTimerHandle& GetSwitchSidesTimerHandle() = 0;
+	virtual void StopInterstitialTimer() = 0;
 };

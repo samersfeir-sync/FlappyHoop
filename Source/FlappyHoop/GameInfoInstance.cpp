@@ -5,7 +5,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "MySaveGame.h"
 #include "MoviePlayer.h"
-#include "Interface/AGBannerAdInterface.h"
 #include "Ads/AGAdLibrary.h"
 #include "Components/AudioComponent.h"
 
@@ -60,6 +59,14 @@ void UGameInfoInstance::Init()
 
 void UGameInfoInstance::OnMoviePlaybackFinished()
 {
+	bool bMusicMuted = UserProgression.bIsMusicMuted;
+
+	if (!bMusicMuted)
+		PlayBackgroundMusic();
+
+	if (UserProgression.bNoAds)
+		return;
+
 	//banner ad
 	BannerAdInterface = UAGAdLibrary::MakeBannerAd(
 		BannerADUnitID,
@@ -71,11 +78,6 @@ void UGameInfoInstance::OnMoviePlaybackFinished()
 	{
 		BannerAdInterface->LoadAd(true);
 	}
-
-	bool bMusicMuted = UserProgression.bIsMusicMuted;
-
-	if (!bMusicMuted)
-		PlayBackgroundMusic();
 }
 
 void UGameInfoInstance::PlayBackgroundMusic()

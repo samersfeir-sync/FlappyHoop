@@ -30,7 +30,7 @@ void ABaseGameMode::ResetGame()
 	RetryCount = 0;
 	GemsNeededForSecondChance = BaseGemCost;
 	LoadInterstitialAd();
-	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
+	StartInterstitialTimer();
 }
 
 void ABaseGameMode::SetNewGameTime()
@@ -180,8 +180,7 @@ void ABaseGameMode::BeginPlay()
 	//cache variables that are set from the editor
 	MaxGameTimeOriginal = MaxGameTime;
 
-	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
-
+	StartInterstitialTimer();
 	OnGameStarted.AddUObject(this, &ABaseGameMode::StopInterstitialTimer);
 }
 
@@ -255,6 +254,9 @@ void ABaseGameMode::GrantSecondChance(FRewardItem Reward)
 
 void ABaseGameMode::LoadInterstitialAd()
 {
+	if (!CanShowInterstitialAd())
+		return;
+
 	InterstitialAdInterface = UAGAdLibrary::MakeInterstitialAd(
 		GameInstanceInterface->GetInterstitialAdUnitID());
 
@@ -271,6 +273,20 @@ void ABaseGameMode::LoadInterstitialAd()
 void ABaseGameMode::StopInterstitialTimer()
 {
 	GetWorld()->GetTimerManager().ClearTimer(InterstitialAdTimer);
+}
+
+void ABaseGameMode::StartInterstitialTimer()
+{
+	if (!CanShowInterstitialAd())
+		return;
+
+	World->GetTimerManager().SetTimer(InterstitialAdTimer, this, &ABaseGameMode::LoadInterstitialAd, 15.0f, true);
+}
+
+bool ABaseGameMode::CanShowInterstitialAd() const
+{
+	FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
+	return !UserProgression.bNoAds;
 }
 
 #if WITH_EDITOR

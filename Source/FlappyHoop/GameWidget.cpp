@@ -254,6 +254,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState State)
 		SettingsButton->SetVisibility(ESlateVisibility::Visible);
 		HighScoreText->SetVisibility(ESlateVisibility::Visible);
 		BouncyBucketsLogo->SetVisibility(ESlateVisibility::Visible);
+		NoAdsButton->SetVisibility(ESlateVisibility::Visible);
 
 		GameOverWidget->SetVisibility(ESlateVisibility::Hidden);
 		PauseButton->SetVisibility(ESlateVisibility::Hidden);
@@ -271,6 +272,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState State)
 		SettingsButton->SetVisibility(ESlateVisibility::Hidden);
 		HighScoreText->SetVisibility(ESlateVisibility::Hidden);
 		BouncyBucketsLogo->SetVisibility(ESlateVisibility::Hidden);
+		NoAdsButton->SetVisibility(ESlateVisibility::Hidden);
 
 		PauseButton->SetVisibility(ESlateVisibility::Visible);
 		TimeProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);

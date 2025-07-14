@@ -19,6 +19,8 @@ class IGameModeInterface;
 class UShopItemWidget;
 class UInsufficientCoinsWidget;
 
+DECLARE_DELEGATE(FOnAdsRemoved);
+
 UCLASS()
 class FLAPPYHOOP_API UShopWidget : public UUserWidget
 {
@@ -44,6 +46,8 @@ public:
 
 	UFUNCTION()
 	void GemButtonClicked();
+
+	FOnAdsRemoved AdsRemovedDelegate;
 
 private:
 

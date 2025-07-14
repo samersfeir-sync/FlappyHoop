@@ -37,12 +37,9 @@ void UShopWidget::NativeConstruct()
     InsufficientCoinsWidget->SetShopWidget(this);
 
 #if PLATFORM_ANDROID
-    OnBillingSetupFinishedDelegate.BindDynamic(this, &UShopWidget::BillingSetupFinished);
-    OnBillingDisconnectedDelegate.BindDynamic(this, &UShopWidget::StartConnection);
-    OnPurchaseUpdatedDelegate.BindDynamic(this, &UShopWidget::OnPurchaseUpdated);
 
+    OnPurchaseUpdatedDelegate.BindDynamic(this, &UShopWidget::OnPurchaseUpdated);
     AndroidBillingClient = UMGAndroidBillingLibrary::CreateAndroidBillingClient(OnPurchaseUpdatedDelegate);
-    
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Created Android Billing Client"));
 
 #endif
@@ -109,7 +106,6 @@ void UShopWidget::HideShopWidget()
 #if PLATFORM_ANDROID
     if (CheckBillingClient())
     {
-        AndroidBillingClient->EndConnection();
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Android Billing Client Connection Ended"));
         ProductIds.Empty();
         ProductFound = nullptr;
@@ -295,6 +291,7 @@ void UShopWidget::PurchaseSuccess()
 		GameInstanceInterface->SaveUserProgression(UserProgression);
         GameInstanceInterface->GetBannerAdInterface()->Destroy();
 		GameModeInterface->StopInterstitialTimer();
+		AdsRemovedDelegate.ExecuteIfBound();
         return;
     }
 
@@ -356,6 +353,8 @@ void UShopWidget::StartConnection()
 {
     if (CheckBillingClient())
     {
+        OnBillingSetupFinishedDelegate.BindDynamic(this, &UShopWidget::BillingSetupFinished);
+        OnBillingDisconnectedDelegate.BindDynamic(this, &UShopWidget::StartConnection);
         AndroidBillingClient->StartConnection(OnBillingSetupFinishedDelegate, OnBillingDisconnectedDelegate);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Starting Android Billing Client Connection"));
     }

@@ -51,9 +51,15 @@ void UGameWidget::NativeConstruct()
 	PauseSettingsButton->OnClicked.AddDynamic(this, &UGameWidget::SettingsButtonClicked);
 	NoAdsButton->OnClicked.AddDynamic(this, &UGameWidget::NoAdsButtonClicked);
 
+	HideNoAdsButton();
+
+	ShopWidget->AdsRemovedDelegate.BindUObject(this, &UGameWidget::HideNoAdsButton);
+
 #if PLATFORM_ANDROID
+
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Connecting to Shop..."));
 	ShopWidget->StartConnection();
+
 #endif
 }
 
@@ -235,6 +241,14 @@ void UGameWidget::NoAdsButtonClicked()
 #endif
 }
 
+void UGameWidget::HideNoAdsButton()
+{
+	FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
+	bool bNoAds = UserProgression.bNoAds;
+	ESlateVisibility NoAdsButtonVisibility = bNoAds ? ESlateVisibility::Collapsed : ESlateVisibility::Visible;
+	NoAdsButton->SetVisibility(NoAdsButtonVisibility);
+}
+
 void UGameWidget::EnablePlayButton()
 {
 	PlayButton->SetIsEnabled(true);
@@ -254,7 +268,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState State)
 		SettingsButton->SetVisibility(ESlateVisibility::Visible);
 		HighScoreText->SetVisibility(ESlateVisibility::Visible);
 		BouncyBucketsLogo->SetVisibility(ESlateVisibility::Visible);
-		NoAdsButton->SetVisibility(ESlateVisibility::Visible);
+		HideNoAdsButton();
 
 		GameOverWidget->SetVisibility(ESlateVisibility::Hidden);
 		PauseButton->SetVisibility(ESlateVisibility::Hidden);

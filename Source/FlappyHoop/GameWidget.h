@@ -174,4 +174,6 @@ private:
 
 	UFUNCTION()
 	void NoAdsButtonClicked();
+
+	void HideNoAdsButton();
 };

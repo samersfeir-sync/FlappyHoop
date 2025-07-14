@@ -81,7 +81,7 @@ void AHoop::OnRimDetectorBeginOverlap(UPrimitiveComponent* OverlappedComponent, 
             FVector BallVelocity = BallInterface->GetBallVelocity();
 
             //only track balls that are moving downward when entering the rim detector
-            if (BallVelocity.Z < 0)
+            if (BallVelocity.Z < MinimumDownwardVelocity)
             {
                 BallsAboveRim.Add(OtherActor);
 

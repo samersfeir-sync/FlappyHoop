@@ -56,5 +56,4 @@ private:
 
 	UPROPERTY()
 	UAudioComponent* MusicAudioComponent;
-
 };

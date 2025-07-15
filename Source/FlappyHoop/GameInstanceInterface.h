@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "UserProgression.h"
 #include "Interface/AGBannerAdInterface.h"
+#include "MGAndroidBillingClient.h"
 #include "GameInstanceInterface.generated.h"
 
 // This class does not need to be modified.
@@ -31,4 +32,5 @@ public:
 	virtual void PlayBackgroundMusic() = 0;
 	virtual void StopBackgroundMusic() = 0;
 	virtual const TScriptInterface<IAGBannerAdInterface> GetBannerAdInterface() const = 0;
+	//virtual const UMGAndroidBillingClient* GetAndroidBillingClient() const = 0;
 };

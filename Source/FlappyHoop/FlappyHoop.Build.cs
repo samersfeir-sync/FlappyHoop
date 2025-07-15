@@ -12,8 +12,6 @@ public class FlappyHoop : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
-        PublicDefinitions.Add("DEBUG_IN_SHIPPING=1");
-
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 

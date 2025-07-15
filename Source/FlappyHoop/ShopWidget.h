@@ -148,4 +148,10 @@ private:
 	const FGemShopInfo* ProductFound;
 
 	static const TCHAR* BillingResponseCodeToString(EMGAndroidBillingResponseCode Code);
+
+	UFUNCTION()
+	void RetryConnection();
+
+	UFUNCTION()
+	void CheckAndPrintConnectionAndBillingStatus();
 };

@@ -40,7 +40,10 @@ void UShopWidget::NativeConstruct()
 
     OnPurchaseUpdatedDelegate.BindDynamic(this, &UShopWidget::OnPurchaseUpdated);
     AndroidBillingClient = UMGAndroidBillingLibrary::CreateAndroidBillingClient(OnPurchaseUpdatedDelegate);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Created Android Billing Client"));
+    StartConnection();
+
+    //FTimerHandle BillingClientCheckTimer;
+	//GetWorld()->GetTimerManager().SetTimer(BillingClientCheckTimer, this, &UShopWidget::CheckAndPrintConnectionAndBillingStatus, 1.0f, true);
 
 #endif
 }
@@ -197,6 +200,45 @@ const TCHAR* UShopWidget::BillingResponseCodeToString(EMGAndroidBillingResponseC
     }
 }
 
+void UShopWidget::RetryConnection()
+{
+    if(CheckBillingClient())
+    {
+        StartConnection();
+	}
+}
+
+void UShopWidget::CheckAndPrintConnectionAndBillingStatus()
+{
+#if PLATFORM_ANDROID
+    const bool bReady = CheckBillingClient();
+
+    EMGConnectionState ConnectionState = AndroidBillingClient->GetConnectionState();
+    FString StateStr;
+    switch (ConnectionState)
+    {
+    case EMGConnectionState::Disconnected:
+        StateStr = TEXT("Disconnected");
+        break;
+    case EMGConnectionState::Connecting:
+        StateStr = TEXT("Connecting");
+        break;
+    case EMGConnectionState::Connected:
+        StateStr = TEXT("Connected");
+        break;
+    case EMGConnectionState::Closed:
+        StateStr = TEXT("Closed");
+        break;
+    default:
+        StateStr = TEXT("Unknown");
+        break;
+    }
+    GEngine->AddOnScreenDebugMessage(-1, 5.0f, bReady ? FColor::Green : FColor::Red, 
+        FString::Printf(TEXT("Billing client ready: %s, connection state: %s"), 
+            bReady ? TEXT("TRUE") : TEXT("FALSE"), *StateStr)); 
+#endif
+}
+
 bool UShopWidget::BillingResponseOK(UMGAndroidBillingResult* BillingResult) const
 {
     const bool bResult = BillingResult && BillingResult->GetResponseCode() == EMGAndroidBillingResponseCode::Ok;
@@ -226,22 +268,13 @@ bool UShopWidget::BillingResponseOK(UMGAndroidBillingResult* BillingResult) cons
 bool UShopWidget::CheckBillingClient() const
 {
 #if PLATFORM_ANDROID
+
     const bool bValid = AndroidBillingClient != nullptr;
     const bool bNativeValid = bValid && AndroidBillingClient->IsNativeObjectValid();
     const bool bReady = bNativeValid && AndroidBillingClient->IsReady();
 
-    FString Message = FString::Printf(
-        TEXT("CheckBillingClient: Valid=%s, NativeValid=%s, Ready=%s, Result=%s"),
-        bValid ? TEXT("TRUE") : TEXT("FALSE"),
-        bNativeValid ? TEXT("TRUE") : TEXT("FALSE"),
-        bReady ? TEXT("TRUE") : TEXT("FALSE"),
-        bReady ? TEXT("TRUE") : TEXT("FALSE")
-    );
-
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, bReady ? FColor::Green : FColor::Red, Message);
-
     return bReady;
-#else
+#else 
     return false;
 #endif
 }
@@ -351,13 +384,10 @@ void UShopWidget::GemsConsumed(UMGAndroidBillingResult* Result, const FString& T
 
 void UShopWidget::StartConnection()
 {
-    if (CheckBillingClient())
-    {
-        OnBillingSetupFinishedDelegate.BindDynamic(this, &UShopWidget::BillingSetupFinished);
-        OnBillingDisconnectedDelegate.BindDynamic(this, &UShopWidget::StartConnection);
-        AndroidBillingClient->StartConnection(OnBillingSetupFinishedDelegate, OnBillingDisconnectedDelegate);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Starting Android Billing Client Connection"));
-    }
+    OnBillingSetupFinishedDelegate.BindDynamic(this, &UShopWidget::BillingSetupFinished);
+    OnBillingDisconnectedDelegate.BindDynamic(this, &UShopWidget::RetryConnection);
+    AndroidBillingClient->StartConnection(OnBillingSetupFinishedDelegate, OnBillingDisconnectedDelegate);
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Starting Android Billing Client Connection"));
 }
 
 void UShopWidget::QueryProductDetails(FString ProductId)

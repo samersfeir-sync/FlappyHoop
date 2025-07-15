@@ -54,13 +54,6 @@ void UGameWidget::NativeConstruct()
 	HideNoAdsButton();
 
 	ShopWidget->AdsRemovedDelegate.BindUObject(this, &UGameWidget::HideNoAdsButton);
-
-#if PLATFORM_ANDROID
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Connecting to Shop..."));
-	ShopWidget->StartConnection();
-
-#endif
 }
 
 void UGameWidget::OnPlayClicked()

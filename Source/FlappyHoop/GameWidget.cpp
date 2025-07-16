@@ -229,7 +229,7 @@ void UGameWidget::SettingsButtonClicked()
 void UGameWidget::NoAdsButtonClicked()
 {
 #if PLATFORM_ANDROID
-	const FString ProductId = TEXT("noads");
+	const FString ProductId = TEXT("removeads");
 	ShopWidget->QueryProductDetails(ProductId);
 #endif
 }

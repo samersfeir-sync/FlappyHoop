@@ -317,7 +317,7 @@ void UShopWidget::PurchaseSuccess()
 
     const FString ProductId = ProductIds[0];
 
-    if (ProductId == "noads")
+    if (ProductId == "removeads")
     {
 		FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
 		UserProgression.bNoAds = true;
@@ -394,7 +394,8 @@ void UShopWidget::QueryProductDetails(FString ProductId)
 {
     if (CheckBillingClient())
     {
-        ProductIds.Add(ProductId);
+        ProductIds.SetNum(1);
+        ProductIds[0] = ProductId;
 		OnAndroidProductDetailsDelegate.BindDynamic(this, &UShopWidget::OnQueryProductDetailsCompleted);
         AndroidBillingClient->QueryProductDetails(EMGSkuType::Purchase, ProductIds, OnAndroidProductDetailsDelegate);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Querying Product Details for: " + ProductId));

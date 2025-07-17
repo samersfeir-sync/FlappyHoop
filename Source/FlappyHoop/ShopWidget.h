@@ -39,9 +39,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UInsufficientCoinsWidget* InsufficientCoinsWidget;
 
-	UFUNCTION()
-	void StartConnection();
-
 	void QueryProductDetails(FString ProductId);
 
 	UFUNCTION()
@@ -100,36 +97,9 @@ private:
 	UFUNCTION()
 	void BallButtonClicked();
 
-	UPROPERTY()
-	UMGAndroidBillingClient* AndroidBillingClient = nullptr;
-
-	FOnPurchasesUpdated OnPurchaseUpdatedDelegate;
-
-	UFUNCTION()
-	void OnPurchaseUpdated(UMGAndroidBillingResult* Result, const TArray<UMGAndroidPurchase*>& Purchases);
-
-	bool BillingResponseOK(UMGAndroidBillingResult* BillingResult) const;
-
-	bool CheckBillingClient() const;
-
-	FAndroidBillingResultDelegate OnAcknowledgeCompletedDelegate;
-	FAndroidBillingResultDelegate OnBillingSetupFinishedDelegate;
-	FAndroidBillingVoidDelegate OnBillingDisconnectedDelegate;
-
-	UFUNCTION()
-	void OnAcknowledgeCompleted(UMGAndroidBillingResult* Result);
-
-	FString PurchaseToken = "";
-
-	UPROPERTY()
-	UMGAndroidPurchase* CurrentPurchase;
-
 	void PurchaseSuccess();
 
-	UFUNCTION()
-	void BillingSetupFinished(UMGAndroidBillingResult* Result);
-
-	FAndroidPurchasesDelegate OnAndroidPurchasesDelegate;
+	FAndroidPurchasesDelegate OnQueryPurchasesCompletedDelegate;
 
 	FAndroidProductDetailsDelegate OnAndroidProductDetailsDelegate;
 
@@ -150,8 +120,7 @@ private:
 	static const TCHAR* BillingResponseCodeToString(EMGAndroidBillingResponseCode Code);
 
 	UFUNCTION()
-	void RetryConnection();
-
-	UFUNCTION()
 	void CheckAndPrintConnectionAndBillingStatus();
+
+	void QueryPurchases();
 };

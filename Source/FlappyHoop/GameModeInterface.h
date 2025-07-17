@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "BallType.h"
 #include "Ads/AGRewardItem.h"
+#include "GameStateEnum.h"
 #include "GameModeInterface.generated.h"
 
 class IGameInstanceInterface;
@@ -75,4 +76,6 @@ public:
 	virtual void IncrementGemsSpentCount(int32 IncrementBy) = 0;
 	virtual FTimerHandle& GetSwitchSidesTimerHandle() = 0;
 	virtual void StopInterstitialTimer() = 0;
+	virtual EGameStateEnum GetCurrentGameState() const = 0;
+	virtual void SetCurrentGameState(EGameStateEnum NewState) = 0;
 };

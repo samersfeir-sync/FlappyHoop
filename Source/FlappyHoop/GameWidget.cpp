@@ -59,8 +59,9 @@ void UGameWidget::NativeConstruct()
 void UGameWidget::OnPlayClicked()
 {
 	GameModeInterface->OnGameStartedDelegate().Broadcast();
-	CurrentWidgetState = EWidgetState::Playing;
-	ApplyWidgetState(CurrentWidgetState);
+	GameModeInterface->SetCurrentGameState(EGameStateEnum::Playing);
+	EGameStateEnum CurrentGameState = GameModeInterface->GetCurrentGameState();
+	ApplyWidgetState(CurrentGameState);
 	StartTimer();
 }
 
@@ -121,9 +122,10 @@ void UGameWidget::ResumeGame()
 
 void UGameWidget::ReturnToMainMenu()
 {
+	GameModeInterface->SetCurrentGameState(EGameStateEnum::MainMenu);
+	EGameStateEnum CurrentGameState = GameModeInterface->GetCurrentGameState();
 	GameModeInterface->ResetGame();
-	CurrentWidgetState = EWidgetState::MainMenu;
-	ApplyWidgetState(CurrentWidgetState);
+	ApplyWidgetState(CurrentGameState);
 	UpdateScoreUI(0);
 	World->GetTimerManager().ClearTimer(GameTimer);
 	TimeProgressBar->SetPercent(1.0f);
@@ -247,14 +249,14 @@ void UGameWidget::EnablePlayButton()
 	PlayButton->SetIsEnabled(true);
 }
 
-void UGameWidget::ApplyWidgetState(EWidgetState State)
+void UGameWidget::ApplyWidgetState(EGameStateEnum State)
 {
 	int32 TotalCoins = GameModeInterface->GetTotalCoins();
 	int32 TotalGems = GameModeInterface->GetTotalGems();
 
 	switch (State)
 	{
-	case EWidgetState::MainMenu:
+	case EGameStateEnum::MainMenu:
 		PlayButton->SetVisibility(ESlateVisibility::Visible);
 		QuitButton->SetVisibility(ESlateVisibility::Visible);
 		ShopButton->SetVisibility(ESlateVisibility::Visible);
@@ -272,7 +274,7 @@ void UGameWidget::ApplyWidgetState(EWidgetState State)
 		BlackBorder->SetVisibility(ESlateVisibility::Hidden);
 		break;
 
-	case EWidgetState::Playing:
+	case EGameStateEnum::Playing:
 		PlayButton->SetVisibility(ESlateVisibility::Hidden);
 		QuitButton->SetVisibility(ESlateVisibility::Hidden);
 		ShopButton->SetVisibility(ESlateVisibility::Hidden);

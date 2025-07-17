@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "MGAndroidBillingLibrary.h"
 #include "FunctionsLibrary.generated.h"
 
 class IGameInstanceInterface;
@@ -21,4 +22,6 @@ public:
 	static IGameModeInterface* GetGameModeInterface(UObject* WorldContextObject);
 
 	static void SetHighScoreText(class UTextBlock* TextBlock, int NewHighScore);
+
+	static bool BillingResponseOK(UMGAndroidBillingResult* BillingResult);
 };

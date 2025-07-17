@@ -9,6 +9,8 @@
 #include "MGAndroidBillingClient.h"
 #include "GameInstanceInterface.generated.h"
 
+DECLARE_DELEGATE(FOnPurchaseSuccessful)
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UGameInstanceInterface : public UInterface
@@ -32,5 +34,10 @@ public:
 	virtual void PlayBackgroundMusic() = 0;
 	virtual void StopBackgroundMusic() = 0;
 	virtual const TScriptInterface<IAGBannerAdInterface> GetBannerAdInterface() const = 0;
-	//virtual const UMGAndroidBillingClient* GetAndroidBillingClient() const = 0;
+	virtual UMGAndroidBillingClient* GetAndroidBillingClient() const = 0;
+	virtual bool IsBillingClientReady() const = 0;
+	virtual void OnPurchaseUpdated(UMGAndroidBillingResult* Result, const TArray<UMGAndroidPurchase*>& Purchases) = 0;
+	virtual FString& GetPurchaseToken() = 0;
+	virtual FOnPurchaseSuccessful& GetOnPurchaseSuccessfulDelegate() = 0;
+	virtual UMGAndroidPurchase*& GetCurrentPurchase() = 0;
 };

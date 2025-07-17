@@ -38,9 +38,8 @@ void UShopWidget::NativeConstruct()
 
 #if PLATFORM_ANDROID
 
-    OnPurchaseUpdatedDelegate.BindDynamic(this, &UShopWidget::OnPurchaseUpdated);
-    AndroidBillingClient = UMGAndroidBillingLibrary::CreateAndroidBillingClient(OnPurchaseUpdatedDelegate);
-    StartConnection();
+    QueryPurchases();
+	GameInstanceInterface->GetOnPurchaseSuccessfulDelegate().BindUObject(this, &UShopWidget::PurchaseSuccess);
 
     //FTimerHandle BillingClientCheckTimer;
 	//GetWorld()->GetTimerManager().SetTimer(BillingClientCheckTimer, this, &UShopWidget::CheckAndPrintConnectionAndBillingStatus, 1.0f, true);
@@ -107,13 +106,12 @@ void UShopWidget::HideShopWidget()
     ScrollBox->ScrollToStart();
 
 #if PLATFORM_ANDROID
-    if (CheckBillingClient())
+    if (GameInstanceInterface->IsBillingClientReady())
     {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Android Billing Client Connection Ended"));
         ProductIds.Empty();
         ProductFound = nullptr;
-        CurrentPurchase = nullptr;
-        PurchaseToken.Empty();
+        GameInstanceInterface->GetCurrentPurchase() = nullptr;
+        GameInstanceInterface->GetPurchaseToken().Empty();
     }
 #endif
 }
@@ -162,27 +160,6 @@ void UShopWidget::GemButtonClicked()
 	ScrollBox->ScrollToStart();
 }
 
-void UShopWidget::OnPurchaseUpdated(UMGAndroidBillingResult* Result, const TArray<UMGAndroidPurchase*>& Purchases)
-{
-    if (BillingResponseOK(Result))
-    {
-        for (UMGAndroidPurchase* Purchase : Purchases)
-        {
-            if(!Purchase->IsAcknowledged() && Purchase->GetPurchaseState() == EMGAndroidPurchaseState::Purchased)
-            {
-                if (CheckBillingClient())
-                {
-                    CurrentPurchase = Purchase;
-					PurchaseToken = Purchase->GetPurchaseToken();
-					OnAcknowledgeCompletedDelegate.BindDynamic(this, &UShopWidget::OnAcknowledgeCompleted);
-                    AndroidBillingClient->AcknowledgePurchase(PurchaseToken, OnAcknowledgeCompletedDelegate);
-                    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Acknowledging Purchase: %s"), *PurchaseToken));
-                }
-			}
-        }
-    }
-}
-
 const TCHAR* UShopWidget::BillingResponseCodeToString(EMGAndroidBillingResponseCode Code)
 {
     switch (Code)
@@ -200,20 +177,12 @@ const TCHAR* UShopWidget::BillingResponseCodeToString(EMGAndroidBillingResponseC
     }
 }
 
-void UShopWidget::RetryConnection()
-{
-    if(CheckBillingClient())
-    {
-        StartConnection();
-	}
-}
-
 void UShopWidget::CheckAndPrintConnectionAndBillingStatus()
 {
 #if PLATFORM_ANDROID
-    const bool bReady = CheckBillingClient();
+    const bool bReady = GameInstanceInterface->IsBillingClientReady();
 
-    EMGConnectionState ConnectionState = AndroidBillingClient->GetConnectionState();
+    EMGConnectionState ConnectionState = GameInstanceInterface->GetAndroidBillingClient()->GetConnectionState();
     FString StateStr;
     switch (ConnectionState)
     {
@@ -239,74 +208,19 @@ void UShopWidget::CheckAndPrintConnectionAndBillingStatus()
 #endif
 }
 
-bool UShopWidget::BillingResponseOK(UMGAndroidBillingResult* BillingResult) const
+void UShopWidget::QueryPurchases()
 {
-    const bool bResult = BillingResult && BillingResult->GetResponseCode() == EMGAndroidBillingResponseCode::Ok;
-
-    FString Message;
-
-    if (!BillingResult)
+    if (GameInstanceInterface->IsBillingClientReady())
     {
-        Message = TEXT("BillingResponseOK: BillingResult is NULL");
-    }
-    else
-    {
-        const auto Code = BillingResult->GetResponseCode();
-        Message = FString::Printf(
-            TEXT("BillingResponseOK: Response Code = %d (%s), Result = %s"),
-            static_cast<int32>(Code),
-            BillingResponseCodeToString(Code),
-            bResult ? TEXT("TRUE") : TEXT("FALSE")
-        );
-    }
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Querying Purchases..."));
 
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, bResult ? FColor::Green : FColor::Red, Message);
+        OnQueryPurchasesCompletedDelegate.BindDynamic(GameInstanceInterface, &IGameInstanceInterface::OnPurchaseUpdated);
 
-    return bResult;
-}
-
-bool UShopWidget::CheckBillingClient() const
-{
-#if PLATFORM_ANDROID
-
-    const bool bValid = AndroidBillingClient != nullptr;
-    const bool bNativeValid = bValid && AndroidBillingClient->IsNativeObjectValid();
-    const bool bReady = bNativeValid && AndroidBillingClient->IsReady();
-
-    return bReady;
-#else 
-    return false;
-#endif
-}
-
-void UShopWidget::OnAcknowledgeCompleted(UMGAndroidBillingResult* Result)
-{
-    if (BillingResponseOK(Result))
-    {
-        if (CheckBillingClient() && CurrentPurchase)
-        {
-            EMGAndroidPurchaseState PurchaseState = CurrentPurchase->GetPurchaseState();
-
-            switch (PurchaseState)
-            {
-            case EMGAndroidPurchaseState::Unspecified:
-                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Purchase State: Unspecified"));
-                break;
-
-            case EMGAndroidPurchaseState::Purchased:
-                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Purchase State: Purchased"));
-                PurchaseSuccess();
-                break;
-
-            case EMGAndroidPurchaseState::Pending:
-                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Purchase State: Pending"));
-                break;
-
-            default:
-                GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Purchase State: Unknown"));
-                break;
-            }
-        }
+        FString Message = FString::Printf(TEXT("OnQueryPurchasesCompletedDelegate IsBound? %s"),
+            OnQueryPurchasesCompletedDelegate.IsBound() ? TEXT("true") : TEXT("false"));
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
+        
+        GameInstanceInterface->GetAndroidBillingClient()->QueryPurchases(EMGSkuType::Purchase, OnQueryPurchasesCompletedDelegate);
     }
 }
 
@@ -319,10 +233,16 @@ void UShopWidget::PurchaseSuccess()
 
     if (ProductId == "removeads")
     {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Remove ads product purchased."));
 		FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
 		UserProgression.bNoAds = true;
 		GameInstanceInterface->SaveUserProgression(UserProgression);
-        GameInstanceInterface->GetBannerAdInterface()->Destroy();
+
+        if (GameInstanceInterface->GetBannerAdInterface())
+        {
+            GameInstanceInterface->GetBannerAdInterface()->Destroy();
+        }
+
 		GameModeInterface->StopInterstitialTimer();
 		AdsRemovedDelegate.ExecuteIfBound();
         return;
@@ -337,32 +257,26 @@ void UShopWidget::PurchaseSuccess()
     {
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Product Found: " + ProductFound->ProductId));
 		OnCosumeDelegate.BindDynamic(this, &UShopWidget::GemsConsumed);
-        AndroidBillingClient->Consume(PurchaseToken, OnCosumeDelegate);
+        GameInstanceInterface->GetAndroidBillingClient()->Consume(GameInstanceInterface->GetPurchaseToken(), OnCosumeDelegate);
     }
-}
-
-void UShopWidget::BillingSetupFinished(UMGAndroidBillingResult* Result)
-{
-    if (BillingResponseOK(Result))
+    else
     {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Billing Client Setup Finished Successfully"));
-		OnAndroidPurchasesDelegate.BindDynamic(this, &UShopWidget::OnPurchaseUpdated);
-        AndroidBillingClient->QueryPurchases(EMGSkuType::Purchase, OnAndroidPurchasesDelegate);
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Gems product not found."));
     }
 }
 
 void UShopWidget::OnQueryProductDetailsCompleted(UMGAndroidBillingResult* Result, const TArray<UMGAndroidProductDetails*>& ProductDetails)
 {
-    if (BillingResponseOK(Result))
+    if (UFunctionsLibrary::BillingResponseOK(Result))
     {
         if (ProductDetails.Num() > 0)
         {
-            if (CheckBillingClient())
+            if (GameInstanceInterface->IsBillingClientReady())
             {
                 UMGAndroidBillingFlowParameters* BillingFlowParams;
                 BillingFlowParams = UMGAndroidBillingLibrary::CreateAndroidBillingFlowParameters();
 				BillingFlowParams->SetProductDetailsParams(ProductDetails[0]);
-                AndroidBillingClient->LaunchBillingFlow(BillingFlowParams, OnBillingFlowStartedDelegate);
+                GameInstanceInterface->GetAndroidBillingClient()->LaunchBillingFlow(BillingFlowParams, OnBillingFlowStartedDelegate);
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Billing Flow Started for Product: " + ProductDetails[0]->GetProductId()));
             }
         }
@@ -371,33 +285,25 @@ void UShopWidget::OnQueryProductDetailsCompleted(UMGAndroidBillingResult* Result
 
 void UShopWidget::GemsConsumed(UMGAndroidBillingResult* Result, const FString& Token)
 {
-    if (BillingResponseOK(Result))
+    if (UFunctionsLibrary::BillingResponseOK(Result))
     {
 		FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
 		UserProgression.TotalGems += ProductFound->Amount;
 		GameInstanceInterface->SaveUserProgression(UserProgression);
 		TotalGemsWidget->UpdateGemsText(UserProgression.TotalGems);
-        PurchaseToken.Empty();
+        GameInstanceInterface->GetPurchaseToken().Empty();
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Gems Consumed Successfully: " + Token));
     }
 }
 
-void UShopWidget::StartConnection()
-{
-    OnBillingSetupFinishedDelegate.BindDynamic(this, &UShopWidget::BillingSetupFinished);
-    OnBillingDisconnectedDelegate.BindDynamic(this, &UShopWidget::RetryConnection);
-    AndroidBillingClient->StartConnection(OnBillingSetupFinishedDelegate, OnBillingDisconnectedDelegate);
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Starting Android Billing Client Connection"));
-}
-
 void UShopWidget::QueryProductDetails(FString ProductId)
 {
-    if (CheckBillingClient())
+    if (GameInstanceInterface->IsBillingClientReady())
     {
         ProductIds.SetNum(1);
         ProductIds[0] = ProductId;
 		OnAndroidProductDetailsDelegate.BindDynamic(this, &UShopWidget::OnQueryProductDetailsCompleted);
-        AndroidBillingClient->QueryProductDetails(EMGSkuType::Purchase, ProductIds, OnAndroidProductDetailsDelegate);
+        GameInstanceInterface->GetAndroidBillingClient()->QueryProductDetails(EMGSkuType::Purchase, ProductIds, OnAndroidProductDetailsDelegate);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Querying Product Details for: " + ProductId));
     }
 }

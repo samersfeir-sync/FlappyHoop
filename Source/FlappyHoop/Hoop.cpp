@@ -177,11 +177,17 @@ void AHoop::ResetBallTracking()
 
 void AHoop::SwitchSides()
 {
-    BallInterface->ChangeBallDirection();
-    PlayerController->EnableControllerInput();
-    UGameplayStatics::PlaySound2D(this, ScoreSound);
+	EGameStateEnum CurrentGameState = GameModeInterface->GetCurrentGameState();
+
+    if (CurrentGameState == EGameStateEnum::MainMenu)
+		return;
+
     if (GameModeInterface)
     {
+        BallInterface->ChangeBallDirection();
+        PlayerController->EnableControllerInput();
+        UGameplayStatics::PlaySound2D(this, ScoreSound);
+
         GameModeInterface->SetNewGameTime();
         GameModeInterface->UpdateScore();
         GameModeInterface->SetTimeEndedBool(false);

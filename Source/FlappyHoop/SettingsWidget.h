@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "UserProgression.h"
 #include "SettingsWidget.generated.h"
 
 class UButton;
@@ -60,8 +59,6 @@ private:
 
 	UFUNCTION()
 	void ToggleMusic();
-
-	FUserProgression UserProgression;
 
 	void SetSoundClassVolume(USoundClass* SoundClass, float Volume);
 

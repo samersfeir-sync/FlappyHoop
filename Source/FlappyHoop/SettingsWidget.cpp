@@ -16,7 +16,7 @@ void USettingsWidget::NativeConstruct()
 
 	if (GameInstanceInterface)
 	{
-		UserProgression = GameInstanceInterface->GetUserProgression();
+		FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
 
 		bool bMutedSFX = UserProgression.bIsSFXMuted;
 		UpdateBordersVisuals(MutedSFXBorder, UnmutedSFXBorder, bMutedSFX);
@@ -68,6 +68,7 @@ void USettingsWidget::ToggleSoundEffects()
 {
 	if (!GameInstanceInterface) return;
 
+	FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
 	bool bMuted = UserProgression.bIsSFXMuted;
 	UserProgression.bIsSFXMuted = !bMuted;
 	UpdateBordersVisuals(MutedSFXBorder, UnmutedSFXBorder, !bMuted);
@@ -79,6 +80,7 @@ void USettingsWidget::ToggleMusic()
 {
 	if (!GameInstanceInterface) return;
 
+	FUserProgression UserProgression = GameInstanceInterface->GetUserProgression();
 	bool bMuted = UserProgression.bIsMusicMuted;
 	UserProgression.bIsMusicMuted = !bMuted;
 	UpdateBordersVisuals(MutedMusicBorder, UnmutedMusicBorder, !bMuted);

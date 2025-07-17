@@ -23,6 +23,15 @@ public:
 	virtual FString GetInterstitialAdUnitID() const override { return InterstitialADUnitID; }
 	virtual FString GetRewardedAdUnitID() const override { return RewardedADUnitID; }
 	virtual const TScriptInterface<IAGBannerAdInterface> GetBannerAdInterface() const { return BannerAdInterface; }
+	virtual UMGAndroidBillingClient* GetAndroidBillingClient() const override { return AndroidBillingClient; }
+	virtual bool IsBillingClientReady() const override;
+
+	UFUNCTION()
+	virtual void OnPurchaseUpdated(UMGAndroidBillingResult* Result, const TArray<UMGAndroidPurchase*>& Purchases) override;
+
+	virtual FString& GetPurchaseToken() override { return PurchaseToken; }
+	virtual FOnPurchaseSuccessful& GetOnPurchaseSuccessfulDelegate() override { return OnPurchaseSuccessfulDelegate; }
+	virtual UMGAndroidPurchase*& GetCurrentPurchase() override { return CurrentPurchase; }
 
 private:
 
@@ -56,4 +65,34 @@ private:
 
 	UPROPERTY()
 	UAudioComponent* MusicAudioComponent;
+
+	UPROPERTY()
+	UMGAndroidBillingClient* AndroidBillingClient = nullptr;
+
+	FOnPurchasesUpdated OnPurchaseUpdatedDelegate;
+	FAndroidBillingResultDelegate OnBillingSetupFinishedDelegate;
+	FAndroidBillingVoidDelegate OnBillingDisconnectedDelegate;
+	FAndroidPurchaseHistoryDelegate OnPurchaseHistoryFetchedDelegate;
+	FAndroidBillingResultDelegate OnAcknowledgeCompletedDelegate;
+
+	UFUNCTION()
+	void RetryConnection();
+
+	void StartConnection();
+
+	UFUNCTION()
+	void BillingSetupFinished(UMGAndroidBillingResult* Result);
+
+	UFUNCTION()
+	void RestorePurchases(UMGAndroidBillingResult* Result, const TArray<UMGAndroidPurchaseHistoryRecord*>& Records);
+
+	UPROPERTY()
+	UMGAndroidPurchase* CurrentPurchase;
+
+	FString PurchaseToken = "";
+
+	UFUNCTION()
+	void OnAcknowledgeCompleted(UMGAndroidBillingResult* Result);
+
+	FOnPurchaseSuccessful OnPurchaseSuccessfulDelegate;
 };

@@ -16,7 +16,7 @@
 #include "SecondChanceWidget.h"
 
 void ABaseGameMode::ResetGame()
-{
+{	
 	UGameplayStatics::SetGamePaused(World, false);
 	OnGameReset.Broadcast();
 	MaxGameTime = MaxGameTimeOriginal;
@@ -219,11 +219,9 @@ void ABaseGameMode::ShowInterstitialAdIfAvailable()
 {
 	if (GameWidgetInstance)
 	{
-		EWidgetState CurrentState = GameWidgetInstance->GetCurrentWidgetState();
-
-		switch (CurrentState)
+		switch (CurrentGameState)
 		{
-		case EWidgetState::Playing:
+		case EGameStateEnum::Playing:
 			GameWidgetInstance->PauseGame();
 			break;
 

@@ -6,6 +6,7 @@
 #include "GameModeInterface.h"
 #include "GameFramework/GameModeBase.h"
 #include "Components/TextBlock.h"
+#include "MGAndroidBillingResult.h"
 
 IGameInstanceInterface* UFunctionsLibrary::GetGameInstanceInterface(UObject* WorldContextObject)
 {
@@ -51,4 +52,14 @@ void UFunctionsLibrary::SetHighScoreText(UTextBlock* TextBlock, int NewHighScore
 			FText::FromString(FString::Printf(TEXT("Best: %d"), NewHighScore))
 		);
 	}
+}
+
+bool UFunctionsLibrary::BillingResponseOK(UMGAndroidBillingResult* BillingResult)
+{
+	bool bOk = BillingResult && BillingResult->GetResponseCode() == EMGAndroidBillingResponseCode::Ok;
+
+	FString Message = FString::Printf(TEXT("BillingResponseOK: %s"), bOk ? TEXT("true") : TEXT("false"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, Message);
+
+	return bOk;
 }

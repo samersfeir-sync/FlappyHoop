@@ -104,11 +104,17 @@ public:
 
 	virtual void StopInterstitialTimer() override;
 
+	virtual EGameStateEnum GetCurrentGameState() const override { return CurrentGameState; }
+
+	virtual void SetCurrentGameState(EGameStateEnum NewGameState) override { CurrentGameState = NewGameState; }
+
 protected:
 
 	virtual void BeginPlay() override;
 
 private:
+
+	EGameStateEnum CurrentGameState = EGameStateEnum::MainMenu;
 
 	virtual FVector2D GetViewportSize() const override { return ViewportSize; }
 

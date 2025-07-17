@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameStateEnum.h"
 #include "GameWidget.generated.h"
 
 class UButton;
@@ -19,12 +20,6 @@ class USettingsWidget;
 class UShopWidget;
 class UTotalGemsWidget;
 
-UENUM(BlueprintType)
-enum class EWidgetState : uint8
-{
-	MainMenu	UMETA(DisplayName = "Main Menu"),
-	Playing		UMETA(DisplayName = "Playing"),
-};
 
 UCLASS()
 class FLAPPYHOOP_API UGameWidget : public UUserWidget
@@ -52,8 +47,6 @@ public:
 
 	UFUNCTION()
 	void PauseGame();
-
-	EWidgetState GetCurrentWidgetState() const { return CurrentWidgetState; }
 
 	void ShowSecondChanceWidget(bool bShow);
 
@@ -114,7 +107,7 @@ private:
 
 	UWorld* World = nullptr;
 
-	void ApplyWidgetState(EWidgetState State);
+	void ApplyWidgetState(EGameStateEnum State);
 
 	FTimerHandle GameTimer;
 
@@ -158,8 +151,6 @@ private:
 	void ShowShopWidget();
 
 	void UpdateCollectiblesUI(bool bCoin);
-
-	EWidgetState CurrentWidgetState = EWidgetState::MainMenu;
 
 	void PauseGameAfterRewardAD();
 

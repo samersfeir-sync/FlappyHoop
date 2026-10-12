@@ -63,7 +63,10 @@ private:
 	FBallCatalogEntry Entry;
 	bool bOwned = false;
 
-	void SetItemPriceText(const FString& PriceText, bool bOwnedStyle);
+	void SetItemPriceText(const FText& PriceText, bool bOwnedStyle);
+
+	/** Price text's designer font size, so a reused tile can switch back from the owned look. */
+	int32 DefaultPriceFontSize = 0;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UShopWidget> ParentWidget = nullptr;
@@ -76,6 +79,24 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Audio")
 	TObjectPtr<USoundBase> PurchaseSound;
+
+	// --- Price look (ball not owned yet) ---
+	/** Moves the price text from where it sits in the designer. (0, 0) = no offset. */
+	UPROPERTY(EditDefaultsOnly, Category = "Price")
+	FVector2D PriceTextOffset = FVector2D::ZeroVector;
+
+	// --- "Owned" look (price text on a ball the player already has) ---
+	/** Shown instead of the price once the ball is owned. */
+	UPROPERTY(EditDefaultsOnly, Category = "Owned")
+	FText OwnedText = NSLOCTEXT("Shop", "Owned", "OWNED");
+
+	/** Moves the text when owned (e.g. into the space the coin icon used). (-59, 0) = old behaviour. */
+	UPROPERTY(EditDefaultsOnly, Category = "Owned")
+	FVector2D OwnedTextOffset = FVector2D(-59.0, 0.0);
+
+	/** Font size when owned; 0 keeps the size set in the designer. */
+	UPROPERTY(EditDefaultsOnly, Category = "Owned", meta = (ClampMin = "0"))
+	int32 OwnedFontSize = 35;
 
 	/** Gems charged per missing coin when the player can't afford a ball. */
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")

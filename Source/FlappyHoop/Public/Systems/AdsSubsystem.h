@@ -78,6 +78,12 @@ public:
 	void ShowBanner();
 	void DestroyBanner();
 
+	/**
+	 * Families policy: no banner where a child taps to play (accidental clicks).
+	 * The UI turns it on for the menu / game-over screens only.
+	 */
+	void SetBannerOnScreen(bool bOnScreen);
+
 	// --- Interstitials ---
 	/** Pacing, set by the game mode from its Blueprint settings. */
 	void ConfigureInterstitials(int32 EveryNGames, float CooldownSeconds, float RetrySeconds);
@@ -97,6 +103,11 @@ public:
 private:
 
 	void InitializeADUnits();
+
+	/** Child-directed treatment, under-age-of-consent tag and G-rated ads (Google Play Families). */
+	void ApplyFamiliesAdSettings();
+
+	bool bBannerOnScreen = false;
 
 	// --- Consent ---
 	bool bConsentFlowStarted = false;

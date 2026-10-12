@@ -49,9 +49,16 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
     TObjectPtr<USoundBase> SwishSound;
 
-    /** Minimum height (cm) the ball must have been above the score cylinder for a valid basket. */
-    UPROPERTY(EditDefaultsOnly, Category = "Settings")
-    float MinimumHeightDifference = 50.0f;
+    /**
+     * A basket only counts if the ball reaches ScoreCylinder within this many seconds of dropping into RimDetector
+     * (one continuous drop). Stops an old near-miss from making a later touch from the side/below count.
+     */
+    UPROPERTY(EditDefaultsOnly, Category = "Settings", meta = (ClampMin = "0.05", Units = "s"))
+    float RimToScoreMaxTime = 0.75f;
+
+    /** Logs why each ScoreCylinder touch was accepted or rejected (Output Log, "Basket"). */
+    UPROPERTY(EditAnywhere, Category = "Settings")
+    bool bLogScoringDecisions = false;
 
     /** Ball must be falling faster than this (cm/s, positive number) when entering the rim and scoring. */
     UPROPERTY(EditDefaultsOnly, Category = "Settings", meta = (ClampMin = "0.0"))
@@ -72,23 +79,36 @@ private:
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
     UFUNCTION()
+    void OnRimDetectorEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+    UFUNCTION()
     void OnHoopPartHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
         FVector NormalImpulse, const FHitResult& Hit);
 
     UFUNCTION()
     void SwitchSides();
 
-    bool IsValidScoringAttempt(AActor* Ball) const;
+    bool IsValidScoringAttempt(AActor* Ball, FString& OutReason) const;
 
     void ResetBallTracking();
 
-    /** Per-ball tracking of the current shot. Weak so a destroyed actor can't leave a dangling key. */
-    TSet<TWeakObjectPtr<AActor>> BallsAboveRim;
-    TMap<TWeakObjectPtr<AActor>, float> BallMaxHeights;
+    /** A ball that dropped into RimDetector: when, and where its centre was. */
+    struct FRimEntry
+    {
+        double Time = 0.0;
+        double BallZ = 0.0;
+    };
 
-    /** World time of the last rim/backboard contact and of entering the rim detector (for swish detection). */
+    /**
+     * Balls currently "coming down through the rim". Removed when they score, leave RimDetector going up,
+     * or touch ScoreCylinder while rising; ignored once older than RimToScoreMaxTime.
+     * Weak keys so a destroyed actor can't leave a dangling entry.
+     */
+    TMap<TWeakObjectPtr<AActor>, FRimEntry> RimEntries;
+
+    /** World time of the last rim/backboard contact (for swish detection). */
     double LastRimContactTime = -1000.0;
-    double RimEntryTime = 0.0;
     bool bPendingSwish = false;
 
     TWeakObjectPtr<AActor> ScoringBall;

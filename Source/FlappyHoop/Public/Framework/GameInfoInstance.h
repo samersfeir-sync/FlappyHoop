@@ -31,6 +31,7 @@ public:
 	int32 GetMaxBillingReconnectAttempts() const { return MaxBillingReconnectAttempts; }
 	const UBallCatalog* GetBallCatalog() const { return BallCatalog; }
 	bool ShouldDebugConsentAsEEA() const { return bDebugConsentAsEEA; }
+	bool AreAdsChildDirected() const { return bChildDirectedAds; }
 
 private:
 
@@ -54,6 +55,14 @@ private:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Ads")
 	bool bDebugConsentAsEEA = false;
+
+	/**
+	 * Google Play Families: on when the app's target audience includes children. Every player then gets
+	 * child-directed, non-personalized, G-rated ads (no consent form is needed). Turn off only if the
+	 * target audience in Play Console is 13+.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Ads")
+	bool bChildDirectedAds = true;
 
 	void HandleStartupMovieFinished();
 	void StartMusicAndBanner();

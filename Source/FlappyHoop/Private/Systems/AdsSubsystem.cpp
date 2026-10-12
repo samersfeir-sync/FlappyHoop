@@ -68,6 +68,12 @@ void UAdsSubsystem::StartConsentFlow()
 	bConsentFlowStarted = true;
 
 #if PLATFORM_ANDROID || PLATFORM_IOS
+	// Must be set before the first ad request.
+	ApplyFamiliesAdSettings();
+
+	const UGameInfoInstance* FamiliesGameInstance = Cast<UGameInfoInstance>(GetGameInstance());
+	const bool bChildDirected = !FamiliesGameInstance || FamiliesGameInstance->AreAdsChildDirected();
+
 	ConsentInfoUpdatedDelegate.BindDynamic(this, &UAdsSubsystem::OnConsentInfoUpdated);
 	ConsentInfoErrorDelegate.BindDynamic(this, &UAdsSubsystem::OnConsentInfoError);
 
@@ -83,10 +89,25 @@ void UAdsSubsystem::StartConsentFlow()
 	else
 	{
 		UE_LOG(LogFlappyHoop, Log, TEXT("[Consent] Requesting consent info"));
-		UAGConsentLibrary::RequestConsentInfo(ConsentInfoUpdatedDelegate, ConsentInfoErrorDelegate, false);
+		// Under age of consent: Google won't show a consent form and only serves non-personalized ads.
+		UAGConsentLibrary::RequestConsentInfo(ConsentInfoUpdatedDelegate, ConsentInfoErrorDelegate, bChildDirected);
 	}
 #else
 	FinishConsent();
+#endif
+}
+
+void UAdsSubsystem::ApplyFamiliesAdSettings()
+{
+#if PLATFORM_ANDROID || PLATFORM_IOS
+	const UGameInfoInstance* GameInstance = Cast<UGameInfoInstance>(GetGameInstance());
+	const bool bChildDirected = !GameInstance || GameInstance->AreAdsChildDirected();
+
+	UAGAdLibrary::RequestSetTagForChildDirectedTreatment(bChildDirected ? EChildRelatedTreatmentType::TypeTrue : EChildRelatedTreatmentType::TypeUnspecified);
+	UAGAdLibrary::RequestSetTagForUnderAgeOfConsent(bChildDirected ? EAdmobGoodiesTagForUnderAgeOfConsent::TagTrue : EAdmobGoodiesTagForUnderAgeOfConsent::TagUnspecified);
+	UAGAdLibrary::RequestSetMaxAdContentRating(EAdMaxAdContentRating::General); // G-rated ads only
+
+	UE_LOG(LogFlappyHoop, Log, TEXT("[Ads] Families settings applied (child-directed: %s, max rating: G)"), bChildDirected ? TEXT("yes") : TEXT("no"));
 #endif
 }
 
@@ -225,7 +246,26 @@ void UAdsSubsystem::ShowBanner()
 	BannerAdInterface = UAGAdLibrary::MakeBannerAd(BannerADUnitID, EAdSizeType::Banner, EAdPosition::Bottom);
 	if (BannerAdInterface)
 	{
-		BannerAdInterface->LoadAd(true);
+		BannerAdInterface->LoadAd(bBannerOnScreen); // stays hidden during play
+	}
+}
+
+void UAdsSubsystem::SetBannerOnScreen(bool bOnScreen)
+{
+	bBannerOnScreen = bOnScreen;
+
+	if (!BannerAdInterface)
+	{
+		return;
+	}
+
+	if (bOnScreen)
+	{
+		BannerAdInterface->Show();
+	}
+	else
+	{
+		BannerAdInterface->Hide();
 	}
 }
 

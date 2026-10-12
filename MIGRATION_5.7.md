@@ -113,3 +113,14 @@ optional PopupShow/PopupHide animations. The widget BP needs: `CountdownRing` (I
 - Settings: optional `PrivacyButton` (BindWidgetOptional) shown only when `IsPrivacyOptionsRequired()`; opens Google's privacy options form.
 - Testing: `bDebugConsentAsEEA` on BP_GameInfoInstance (ignored in Shipping) + your device's ID in Project Settings > Admob Goodies > Test Device IDs.
 - AdMob console: the GDPR message must be created and published (Privacy & messaging) or no form will show.
+
+## Play Families policy fix (rejection: "Unclear ads/offers", version code 26)
+- `bChildDirectedAds` (BP_GameInfoInstance, default on): tags all ad requests child-directed + under age of consent, max content rating G; consent requested as under-age (no form, non-personalized ads).
+- Banner is only on screen in MainMenu and GameOver (hidden during play, second chance and pause) to avoid accidental taps.
+- Main menu: optional `NoAdsPriceText` shows "Remove Ads <localized price>".
+- Editor/UI to-do: label every ad/IAP entry point (see chat): "Watch Ad" text + "Ad" badge on the rewarded button, price on gem packs, "In-app purchase" wording; no ad-like buttons that look like gameplay.
+
+## Hoop scoring fix (baskets counting from below)
+- The "dropped into the rim" mark used to never expire. Now: per-ball rim entry (time + ball Z); cleared when the ball leaves RimDetector going up, touches ScoreCylinder while rising, or scores; only valid for RimToScoreMaxTime (0.75 s).
+- Height check is now real: the ball's centre at rim entry must be above ScoreCylinder's centre (replaces MinimumHeightDifference, which compared fixed component positions).
+- bLogScoringDecisions on the hoop logs why each ScoreCylinder touch was accepted/rejected.

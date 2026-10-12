@@ -31,6 +31,7 @@ void UMainMenuWidget::NativeConstruct()
 	if (UStoreSubsystem* Store = UStoreSubsystem::Get(this))
 	{
 		Store->OnAdsRemoved.AddUObject(this, &UMainMenuWidget::UpdateNoAdsButton);
+		Store->OnPricesUpdated.AddUObject(this, &UMainMenuWidget::UpdateNoAdsPrice);
 	}
 
 	Refresh();
@@ -41,6 +42,7 @@ void UMainMenuWidget::NativeDestruct()
 	if (UStoreSubsystem* Store = UStoreSubsystem::Get(this))
 	{
 		Store->OnAdsRemoved.RemoveAll(this);
+		Store->OnPricesUpdated.RemoveAll(this);
 	}
 
 	Super::NativeDestruct();
@@ -54,6 +56,22 @@ void UMainMenuWidget::Refresh()
 	}
 
 	UpdateNoAdsButton();
+	UpdateNoAdsPrice();
+}
+
+void UMainMenuWidget::UpdateNoAdsPrice()
+{
+	if (!NoAdsPriceText)
+	{
+		return;
+	}
+
+	const UStoreSubsystem* Store = UStoreSubsystem::Get(this);
+	const FString Price = Store ? Store->GetLocalizedPrice(FlappyHoopStore::RemoveAdsProductId) : FString();
+
+	NoAdsPriceText->SetText(Price.IsEmpty()
+		? NoAdsLabel
+		: FText::Format(NSLOCTEXT("MainMenu", "NoAdsWithPrice", "{0} {1}"), NoAdsLabel, FText::FromString(Price)));
 }
 
 void UMainMenuWidget::UpdateNoAdsButton()

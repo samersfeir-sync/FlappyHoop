@@ -15,6 +15,7 @@
 #include "Misc/CoreDelegates.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Core/FlappyHoop.h"
+#include "Systems/AdsSubsystem.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -43,6 +44,7 @@ void UGameWidget::NativeConstruct()
 
 	const bool bInMenu = !GameMode || GameMode->GetCurrentGameState() == EGameStateEnum::MainMenu;
 	ShowMenu(bInMenu);
+	UpdateBanner(GameMode ? GameMode->GetCurrentGameState() : EGameStateEnum::MainMenu);
 }
 
 void UGameWidget::NativeDestruct()
@@ -65,6 +67,8 @@ void UGameWidget::NativeDestruct()
 
 void UGameWidget::OnRunPhaseChanged(EGameStateEnum OldPhase, EGameStateEnum NewPhase)
 {
+	UpdateBanner(NewPhase);
+
 	switch (NewPhase)
 	{
 	case EGameStateEnum::MainMenu:
@@ -91,6 +95,15 @@ void UGameWidget::OnRunPhaseChanged(EGameStateEnum OldPhase, EGameStateEnum NewP
 
 	default:
 		break;
+	}
+}
+
+void UGameWidget::UpdateBanner(EGameStateEnum Phase)
+{
+	// Families policy: no banner while playing (tap-anywhere controls = accidental ad clicks).
+	if (UAdsSubsystem* Ads = UAdsSubsystem::Get(this))
+	{
+		Ads->SetBannerOnScreen(Phase == EGameStateEnum::MainMenu || Phase == EGameStateEnum::GameOver);
 	}
 }
 

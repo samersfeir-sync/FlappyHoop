@@ -98,30 +98,26 @@ void USecondChanceWidget::RefreshOptions()
 
 	WatchAdButton->SetIsEnabled(bCanWatchAd);
 	GemButton->SetIsEnabled(bCanUseGems);
-	GemButtonText->SetText(FText::FormatNamed(GemButtonFormat, TEXT("Gems"), GemsNeeded));
-	TotalGemsWidget->UpdateGemsText(TotalGems);
+	if (GemButtonText)
+	{
+		GemButtonText->SetText(FText::FormatNamed(GemButtonFormat, TEXT("Gems"), GemsNeeded));
+	}
+	if (TotalGemsWidget)
+	{
+		TotalGemsWidget->UpdateGemsText(TotalGems);
+	}
 
 	if (!MainText)
 	{
 		return;
 	}
 
-	const FString GemText = FString::Printf(TEXT("%d gem%s"), GemsNeeded, GemsNeeded == 1 ? TEXT("") : TEXT("s"));
+	// Families policy: say plainly which option is an ad. {Gems} = gem cost.
+	const FText& Format = (bCanWatchAd && bCanUseGems) ? BothOptionsText
+		: bCanWatchAd ? AdOnlyText
+		: GemsOnlyText;
 
-	FString Text;
-	if (bCanWatchAd && bCanUseGems)
-	{
-		Text = FString::Printf(TEXT("Don't give up yet! Watch an ad or use <CyanText>%s</> for a second shot!"), *GemText);
-	}
-	else if (bCanWatchAd)
-	{
-		Text = TEXT("Don't give up yet! Watch an ad for a second shot!");
-	}
-	else
-	{
-		Text = FString::Printf(TEXT("Don't give up yet! Use <CyanText>%s</> for a second shot!"), *GemText);
-	}
-	ChangeMainText(Text, false);
+	ChangeMainText(FText::FormatNamed(Format, TEXT("Gems"), GemsNeeded).ToString(), false);
 }
 
 /**

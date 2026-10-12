@@ -37,6 +37,7 @@ void AHoop::BeginPlay()
 
     ScoreCylinder->OnComponentBeginOverlap.AddUniqueDynamic(this, &AHoop::OnScoreCylinderBeginOverlap);
     RimDetector->OnComponentBeginOverlap.AddUniqueDynamic(this, &AHoop::OnRimDetectorBeginOverlap);
+    RimDetector->OnComponentEndOverlap.AddUniqueDynamic(this, &AHoop::OnRimDetectorEndOverlap);
 
     // Blocking hits from the ball's projectile sweep are dispatched to these components too (same as Ground's OnActorHit).
     HoopMesh->OnComponentHit.AddUniqueDynamic(this, &AHoop::OnHoopPartHit);
@@ -81,14 +82,24 @@ void AHoop::OnRimDetectorBeginOverlap(UPrimitiveComponent* OverlappedComponent, 
         return;
     }
 
-    BallsAboveRim.Add(OtherActor);
-    RimEntryTime = GetWorld()->GetTimeSeconds();
+    FRimEntry& Entry = RimEntries.FindOrAdd(OtherActor);
+    Entry.Time = GetWorld()->GetTimeSeconds();
+    Entry.BallZ = OtherActor->GetActorLocation().Z;
+}
 
-    const float CurrentHeight = OtherActor->GetActorLocation().Z;
-    const float* PreviousMax = BallMaxHeights.Find(OtherActor);
-    if (!PreviousMax || *PreviousMax < CurrentHeight)
+void AHoop::OnRimDetectorEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+    const IBallInterface* Ball = Cast<IBallInterface>(OtherActor);
+    if (!Ball)
     {
-        BallMaxHeights.Add(OtherActor, CurrentHeight);
+        return;
+    }
+
+    // Left the rim area going up (bounced out / flapped away): this drop is over.
+    if (Ball->GetBallVelocity().Z > 0.0f)
+    {
+        RimEntries.Remove(OtherActor);
     }
 }
 
@@ -106,55 +117,74 @@ void AHoop::OnScoreCylinderBeginOverlap(UPrimitiveComponent* OverlappedComponent
         return;
     }
 
-    if (!IsValidScoringAttempt(OtherActor))
+    FString Reason;
+    if (!IsValidScoringAttempt(OtherActor, Reason))
     {
+        if (bLogScoringDecisions)
+        {
+            UE_LOG(LogFlappyHoop, Log, TEXT("Basket rejected (%s): %s"), *GetName(), *Reason);
+        }
+
+        // Touching the cylinder while rising means it came from below: whatever drop it had is void.
+        if (const IBallInterface* Ball = Cast<IBallInterface>(OtherActor); Ball && Ball->GetBallVelocity().Z >= 0.0f)
+        {
+            RimEntries.Remove(OtherActor);
+        }
         return;
     }
 
     // Swish = no rim/backboard contact from shortly before entering the rim until now.
+    const double RimEntryTime = RimEntries.FindChecked(OtherActor).Time;
     bPendingSwish = LastRimContactTime < (RimEntryTime - SwishContactWindow);
     ScoringBall = OtherActor;
 
-    BallsAboveRim.Remove(OtherActor);
-    BallMaxHeights.Remove(OtherActor);
+    if (bLogScoringDecisions)
+    {
+        UE_LOG(LogFlappyHoop, Log, TEXT("Basket accepted (%s), swish=%d"), *GetName(), bPendingSwish ? 1 : 0);
+    }
+
+    RimEntries.Remove(OtherActor);
 
     // Freezes input and the round clock until the basket is awarded.
     GameMode->NotifyBasketPending();
     GetWorldTimerManager().SetTimer(SwitchSidesTimer, this, &AHoop::SwitchSides, SwitchSidesDelay, false);
 }
 
-bool AHoop::IsValidScoringAttempt(AActor* Ball) const
+bool AHoop::IsValidScoringAttempt(AActor* Ball, FString& OutReason) const
 {
     const IBallInterface* BallInterface = Cast<IBallInterface>(Ball);
     if (!BallInterface)
     {
+        OutReason = TEXT("not a ball");
         return false;
     }
 
-    if (!BallsAboveRim.Contains(Ball))
+    const FRimEntry* Entry = RimEntries.Find(Ball);
+    if (!Entry)
     {
-        UE_LOG(LogFlappyHoop, Verbose, TEXT("Basket rejected: ball wasn't tracked above the rim"));
+        OutReason = TEXT("didn't drop into the rim first");
         return false;
     }
 
-    const FVector BallVelocity = BallInterface->GetBallVelocity();
-    if (BallVelocity.Z >= -MinimumDownwardVelocity)
+    const double SinceRim = GetWorld()->GetTimeSeconds() - Entry->Time;
+    if (SinceRim > RimToScoreMaxTime)
     {
-        UE_LOG(LogFlappyHoop, Verbose, TEXT("Basket rejected: ball not falling (Z=%f)"), BallVelocity.Z);
+        OutReason = FString::Printf(TEXT("rim entry too old (%.2fs > %.2fs), not one drop"), SinceRim, RimToScoreMaxTime);
         return false;
     }
 
-    const float* MaxHeight = BallMaxHeights.Find(Ball);
-    if (!MaxHeight)
+    const float VelocityZ = BallInterface->GetBallVelocity().Z;
+    if (VelocityZ >= -MinimumDownwardVelocity)
     {
-        UE_LOG(LogFlappyHoop, Verbose, TEXT("Basket rejected: no max height recorded"));
+        OutReason = FString::Printf(TEXT("not falling (Z velocity %.0f)"), VelocityZ);
         return false;
     }
 
-    const float HeightDifference = *MaxHeight - ScoreCylinder->GetComponentLocation().Z;
-    if (HeightDifference < MinimumHeightDifference)
+    // It must have come into the rim from above the cylinder, not from beside/under it.
+    const double CylinderCenterZ = ScoreCylinder->Bounds.Origin.Z;
+    if (Entry->BallZ <= CylinderCenterZ)
     {
-        UE_LOG(LogFlappyHoop, Verbose, TEXT("Basket rejected: height diff %f < %f"), HeightDifference, MinimumHeightDifference);
+        OutReason = FString::Printf(TEXT("entered the rim below the score zone (ball Z %.0f, zone centre %.0f)"), Entry->BallZ, CylinderCenterZ);
         return false;
     }
 
@@ -164,8 +194,7 @@ bool AHoop::IsValidScoringAttempt(AActor* Ball) const
 void AHoop::ResetBallTracking()
 {
     GetWorldTimerManager().ClearTimer(SwitchSidesTimer);
-    BallsAboveRim.Empty();
-    BallMaxHeights.Empty();
+    RimEntries.Empty();
     bPendingSwish = false;
     LastRimContactTime = -1000.0;
     ScoringBall.Reset();

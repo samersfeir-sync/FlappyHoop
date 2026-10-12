@@ -90,6 +90,9 @@ private:
 	void OnAppDeactivated();
 
 	void ShowMenu(bool bMenu);
+
+	/** Banner only on the menu and game-over screens. */
+	void UpdateBanner(EGameStateEnum Phase);
 	void CloseRunPopups();
 
 	UPROPERTY(Transient)

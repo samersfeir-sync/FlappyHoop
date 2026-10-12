@@ -49,6 +49,17 @@ private:
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UButton> NoAdsButton;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTextBlock> HighScoreText;
 
+	/**
+	 * Optional text on/under the No Ads button. Filled with "Remove Ads <price>" (Google Play's localized price)
+	 * so it's clearly an in-app purchase (Families policy). Falls back to NoAdsLabel when no price is known yet.
+	 */
+	UPROPERTY(meta = (BindWidgetOptional)) TObjectPtr<UTextBlock> NoAdsPriceText;
+
+	UPROPERTY(EditDefaultsOnly, Category = "No Ads")
+	FText NoAdsLabel = NSLOCTEXT("MainMenu", "NoAdsLabel", "Remove Ads");
+
+	void UpdateNoAdsPrice();
+
 	UPROPERTY(Transient)
 	TObjectPtr<UGameWidget> GameWidget = nullptr;
 };

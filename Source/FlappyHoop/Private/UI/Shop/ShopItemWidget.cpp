@@ -26,20 +26,26 @@ void UShopItemWidget::SetEntry(const FBallCatalogEntry& NewEntry, bool bNewOwned
 
 	ItemImage->SetBrushFromTexture(Entry.Icon, false);
 	CoinImage->SetVisibility(bOwned ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
-	SetItemPriceText(bOwned ? TEXT("OWNED") : FString::FromInt(Entry.Price), bOwned);
+	SetItemPriceText(bOwned ? OwnedText : FText::FromString(FString::FromInt(Entry.Price)), bOwned);
 }
 
-void UShopItemWidget::SetItemPriceText(const FString& PriceText, bool bOwnedStyle)
+void UShopItemWidget::SetItemPriceText(const FText& PriceText, bool bOwnedStyle)
 {
-	ItemPriceText->SetText(FText::FromString(PriceText));
+	ItemPriceText->SetText(PriceText);
 
-	if (bOwnedStyle)
+	// UTextBlock::Font direct access is deprecated since 5.1; use the getter/setter.
+	FSlateFontInfo FontInfo = ItemPriceText->GetFont();
+	if (DefaultPriceFontSize <= 0)
 	{
-		ItemPriceText->SetRenderTranslation(FVector2D(-59.0, 0.0));
+		DefaultPriceFontSize = FontInfo.Size; // remember the designer size the first time
+	}
 
-		// UTextBlock::Font direct access is deprecated since 5.1; use the getter/setter.
-		FSlateFontInfo FontInfo = ItemPriceText->GetFont();
-		FontInfo.Size = 35;
+	ItemPriceText->SetRenderTranslation(bOwnedStyle ? OwnedTextOffset : PriceTextOffset);
+
+	const int32 WantedSize = (bOwnedStyle && OwnedFontSize > 0) ? OwnedFontSize : DefaultPriceFontSize;
+	if (FontInfo.Size != WantedSize)
+	{
+		FontInfo.Size = WantedSize;
 		ItemPriceText->SetFont(FontInfo);
 	}
 }

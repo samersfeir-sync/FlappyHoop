@@ -82,6 +82,20 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Second Chance")
 	FText GemButtonFormat = NSLOCTEXT("SecondChance", "GemButtonFormat", "Use {Gems}");
 
+	/**
+	 * Main text (rich text). {Gems} = gem cost. <img id="Gem"/> needs an image decorator on MainText with a
+	 * "Gem" row. Colors come from MainText's Text Style Set: <GemText> (gem part), <AdText> (pink "Watch an Ad"),
+	 * untagged text uses the "Default" row (white).
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Second Chance|Text")
+	FText BothOptionsText = NSLOCTEXT("SecondChance", "BothOptions", "<GemText>Use {Gems}</> <img id=\"Gem\"/>\nor <AdText>Watch an Ad</> for a second chance");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Second Chance|Text")
+	FText AdOnlyText = NSLOCTEXT("SecondChance", "AdOnly", "<AdText>Watch an Ad</> for a second chance");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Second Chance|Text")
+	FText GemsOnlyText = NSLOCTEXT("SecondChance", "GemsOnly", "<GemText>Use {Gems}</> <img id=\"Gem\"/> for a second chance");
+
 	/** Ring and countdown text color with the full time left. */
 	UPROPERTY(EditDefaultsOnly, Category = "Countdown")
 	FLinearColor FullTimeColor = FLinearColor(0.1f, 0.85f, 0.2f);
@@ -112,14 +126,15 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> GemButton;
 
-	/** Text inside GemButton showing the gem cost. */
-	UPROPERTY(meta = (BindWidget))
+	/** Optional: text inside GemButton showing the gem cost. */
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> GemButtonText;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> SkipAdButton;
 
-	UPROPERTY(meta = (BindWidget))
+	/** Optional: the player's gem balance. */
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTotalGemsWidget> TotalGemsWidget;
 
 	UPROPERTY(meta = (BindWidget))

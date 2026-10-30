@@ -33,6 +33,9 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	/** Only ticks during a run: applies the difficulty's fall-speed cap. */
+	virtual void Tick(float DeltaSeconds) override;
 
 private:
 
@@ -58,6 +61,17 @@ private:
 
 	void ActivateBall();
 	void ResetBall();
+
+	/** Reads gravity / tap strength / fall cap for the current difficulty level. */
+	void ApplyDifficulty(int32 Level);
+
+	/** BP_Ball's own values, so the difficulty multipliers never compound. */
+	float BaseGravityScale = 2.0f;
+	float BaseVerticalImpulse = 800.0f;
+
+	float CurrentVerticalImpulse = 800.0f;
+	/** cm/s, 0 = no cap. */
+	float MaxFallSpeed = 0.0f;
 
 	UPROPERTY(EditInstanceOnly, Category = "Parameters")
 	TObjectPtr<AScreenEdges> LeftEdge;

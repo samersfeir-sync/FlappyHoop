@@ -32,7 +32,7 @@
 		},
 		{
 			"Name": "OnlineSubsystemGooglePlay",
-			"Enabled": false,
+			"Enabled": true,
 			"SupportedTargetPlatforms": [
 				"Android"
 			]
@@ -234,10 +234,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "Fab",
-			"Enabled": false
-		},
-		{
 			"Name": "ExampleDeviceProfileSelector",
 			"Enabled": false
 		},
@@ -382,7 +378,7 @@
 		},
 		{
 			"Name": "OnlineSubsystem",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "OnlineSubsystemUtils",
@@ -402,7 +398,7 @@
 		},
 		{
 			"Name": "OnlineBase",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "OodleNetwork",

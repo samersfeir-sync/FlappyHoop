@@ -23,7 +23,13 @@ public class FlappyHoop : ModuleRules
 		{
 			"Slate",
 			"SlateCore",
-			"MoviePlayer"
+			"MoviePlayer",
+			"OnlineSubsystem"   // Google Play Games leaderboards (OnlineSubsystemGooglePlay, Android)
 		});
+
+		if (Target.Platform == UnrealTargetPlatform.IOS)
+		{
+			PublicFrameworks.Add("GameKit"); // Game Center leaderboards
+		}
 	}
 }

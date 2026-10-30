@@ -22,7 +22,7 @@ void UComboProgressBarWidget::NativeConstruct()
 	GameMode = ABaseGameMode::Get(this);
 	if (GameMode)
 	{
-		GameMode->OnPointScored.AddUObject(this, &UComboProgressBarWidget::StartTimer);
+		GameMode->OnPointScored.AddUObject(this, &UComboProgressBarWidget::OnPointScored);
 		GameMode->OnRunPhaseChanged.AddUObject(this, &UComboProgressBarWidget::OnRunPhaseChanged);
 	}
 }
@@ -76,8 +76,21 @@ void UComboProgressBarWidget::SetPercent(float Percent)
 	}
 }
 
+void UComboProgressBarWidget::OnPointScored()
+{
+	// Swish-only modes: a normal basket neither grows nor refreshes the combo, it keeps draining.
+	if (GameMode && !GameMode->DidLastBasketBuildCombo())
+	{
+		return;
+	}
+
+	StartTimer();
+}
+
 void UComboProgressBarWidget::StartTimer()
 {
+	// Shorter at higher levels.
+	ActiveComboTime = GameMode ? FMath::Max(GameMode->GetComboWindowSeconds(), 0.1f) : MaxComboTime;
 	SetPercent(1.0f);
 
 	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
@@ -108,7 +121,7 @@ void UComboProgressBarWidget::EndTimer()
 
 void UComboProgressBarWidget::UpdateProgressBar()
 {
-	SetPercent(CurrentPercent - TickInterval / MaxComboTime);
+	SetPercent(CurrentPercent - TickInterval / ActiveComboTime);
 
 	if (CurrentPercent <= 0.0f)
 	{

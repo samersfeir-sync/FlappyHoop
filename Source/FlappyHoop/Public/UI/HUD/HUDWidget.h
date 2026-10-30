@@ -46,6 +46,7 @@ private:
 	void OnCoinCollected(bool bCoin);
 	void OnBalanceChanged(int32 Coins, int32 Gems);
 	void OnSecondChanceGranted();
+	void OnLevelChanged(int32 Level);
 
 	void ShowComboText();
 	void HideComboText();
@@ -57,6 +58,17 @@ private:
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UProgressBar> TimeProgressBar;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTotalCoinsWidget> TotalCoinsWidget;
 	UPROPERTY(meta = (BindWidget)) TObjectPtr<UTotalGemsWidget> TotalGemsWidget;
+
+	/** Optional: shows the run's level, e.g. "Level 3" (format: LevelFormat). */
+	UPROPERTY(meta = (BindWidgetOptional)) TObjectPtr<UTextBlock> LevelText;
+
+	/** Optional: plays when the level goes up (not at the start of a run). */
+	UPROPERTY(meta = (BindWidgetAnimOptional), Transient)
+	TObjectPtr<UWidgetAnimation> LevelUpAnimation;
+
+	/** {0} = level number. */
+	UPROPERTY(EditDefaultsOnly, Category = "Level")
+	FText LevelFormat = NSLOCTEXT("HUD", "LevelFormat", "Level {0}");
 
 	/** Optional: plays on the combo text. Without it the text simply shows for ComboTextSeconds. */
 	UPROPERTY(meta = (BindWidgetAnimOptional), Transient)

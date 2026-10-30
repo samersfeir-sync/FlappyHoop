@@ -8,11 +8,15 @@
 #include "Systems/FlappyAudioSubsystem.h"
 #include "Sound/SoundBase.h"
 #include "MoviePlayer.h"
+#include "HAL/IConsoleManager.h"
+#include "Core/FlappyHoop.h"
 
 void UGameInfoInstance::Init()
 {
 	// Initializes all game-instance subsystems (save loads here, store connects here).
 	Super::Init();
+
+	ApplyMobileResolution();
 
 	if (IGameMoviePlayer* MoviePlayer = GetMoviePlayer())
 	{
@@ -41,6 +45,23 @@ void UGameInfoInstance::Shutdown()
 
 	// Subsystems (save flush, billing disconnect, music stop) are deinitialized by Super.
 	Super::Shutdown();
+}
+
+void UGameInfoInstance::ApplyMobileResolution()
+{
+#if PLATFORM_ANDROID || PLATFORM_IOS
+	// Device profiles (Android_High, GPU-specific ones...) set this per phone; SetByCode ranks above them.
+	if (IConsoleVariable* ContentScale = IConsoleManager::Get().FindConsoleVariable(TEXT("r.MobileContentScaleFactor")))
+	{
+		const float Before = ContentScale->GetFloat();
+		ContentScale->Set(MobileResolutionScale, ECVF_SetByCode);
+		UE_LOG(LogFlappyHoop, Log, TEXT("Display: r.MobileContentScaleFactor %.2f -> %.2f"), Before, ContentScale->GetFloat());
+	}
+	else
+	{
+		UE_LOG(LogFlappyHoop, Warning, TEXT("Display: r.MobileContentScaleFactor not found"));
+	}
+#endif
 }
 
 void UGameInfoInstance::HandleStartupMovieFinished()

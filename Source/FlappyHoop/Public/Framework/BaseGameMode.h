@@ -7,6 +7,7 @@
 #include "Engine/TimerHandle.h"
 #include "Core/GameStateEnum.h"
 #include "Data/BallType.h"
+#include "Data/DifficultyTypes.h"
 #include "BaseGameMode.generated.h"
 
 class UGameWidget;
@@ -26,6 +27,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnCoinCollected, bool /*bCoin*/);
 DECLARE_MULTICAST_DELEGATE(FOnSecondChanceGranted);
 DECLARE_MULTICAST_DELEGATE(FOnRewardedAdShown);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnRewardedAdFailed, const FString& /*Message*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLevelChanged, int32 /*Level, 1-based*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnDifficultyChanged, EDifficultyMode /*NewMode*/);
 
 /**
  * Owns the rules of a run: the run phase, the round timer, score/combo, collectibles picked up this run,
@@ -56,6 +59,31 @@ public:
 	FOnRewardedAdShown OnRewardedAdShown;
 	FOnRewardedAdFailed OnRewardedAdFailed;
 	FOnViewportFetched OnViewportFetched;
+	/** The run reached a new level (also fires with 1 when a run starts). */
+	FOnLevelChanged OnLevelChanged;
+	/** Easy/Hard was switched in the menu. */
+	FOnDifficultyChanged OnDifficultyChanged;
+
+	// --- Difficulty ---
+	EDifficultyMode GetDifficulty() const { return Difficulty; }
+	/** Only allowed in the main menu. Saved, and the high score shown switches to that mode's. */
+	bool SetDifficulty(EDifficultyMode NewMode);
+	const FDifficultyProfile& GetDifficultyProfile() const;
+
+	/** 1-based level of the current run. */
+	int32 GetLevel() const { return CurrentLevel; }
+	/** 0 at level 1, 1 at the profile's max level. */
+	float GetLevelAlpha() const;
+
+	// Current values for the actors (already evaluated for the current level).
+	bool UsesAllHoopHeights() const { return GetDifficultyProfile().bUseAllHoopHeights; }
+	float GetHoopHeightBand() const { return GetDifficultyProfile().HoopHeightBand.Evaluate(GetLevelAlpha()); }
+	float GetHoopDriftAmplitude() const { return GetDifficultyProfile().HoopDriftAmplitude.Evaluate(GetLevelAlpha()); }
+	float GetHoopDriftCyclesPerSecond() const { return GetDifficultyProfile().HoopDriftCyclesPerSecond.Evaluate(GetLevelAlpha()); }
+	float GetBallGravityScale() const { return GetDifficultyProfile().GravityScale.Evaluate(GetLevelAlpha()); }
+	float GetBallFlapStrength() const { return GetDifficultyProfile().FlapStrength.Evaluate(GetLevelAlpha()); }
+	float GetBallMaxFallSpeed() const { return GetDifficultyProfile().MaxFallSpeed.Evaluate(GetLevelAlpha()); }
+	float GetComboWindowSeconds() const { return GetDifficultyProfile().ComboWindowSeconds.Evaluate(GetLevelAlpha()); }
 
 	// --- Run flow ---
 	EGameStateEnum GetCurrentGameState() const { return CurrentGameState; }
@@ -87,10 +115,14 @@ public:
 
 	// --- Score ---
 	bool WasLastBasketSwish() const { return bLastBasketSwish; }
+	/** False when the last basket didn't count toward the combo (a normal basket in a swish-only mode). */
+	bool DidLastBasketBuildCombo() const { return bLastBasketBuiltCombo; }
 	int32 GetScoreMultiplier() const { return ScoreMultiplier; }
 	void ResetScoreMultiplier() { ScoreMultiplier = 1; }
 	int32 GetCurrentScore() const { return CurrentScore; }
-	int32 GetHighScore() const { return HighScore; }
+	/** Best score of the selected difficulty. */
+	int32 GetHighScore() const { return GetHighScore(Difficulty); }
+	int32 GetHighScore(EDifficultyMode Mode) const { return Mode == EDifficultyMode::Hard ? HighScoreHard : HighScoreEasy; }
 
 	// --- Collectibles picked up this run ---
 	void AddCoin() { CollectedCoins++; }
@@ -119,10 +151,6 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 
 private:
 
@@ -155,18 +183,22 @@ private:
 	void FetchViewportSize();
 	FVector2D ViewportSize = FVector2D::ZeroVector;
 
-	// --- Round timer / difficulty ---
-	/** Each basket shortens the round by this fraction of the starting time. */
-	UPROPERTY(EditDefaultsOnly, Category = "Parameters")
-	float GameTimeReductionRate = 0.05f;
+	// --- Difficulty ---
+	/** Tuning for Easy mode. Round time, combo and reward chances now live here (they used to be under Parameters/Collectibles). */
+	UPROPERTY(EditDefaultsOnly, Category = "Difficulty")
+	FDifficultyProfile EasyProfile = FDifficultyProfile::MakeEasy();
 
-	/** Starting round time in seconds. */
-	UPROPERTY(EditDefaultsOnly, Category = "Parameters")
-	float MaxGameTime = 10.0f;
+	/** Tuning for Hard mode. */
+	UPROPERTY(EditDefaultsOnly, Category = "Difficulty")
+	FDifficultyProfile HardProfile = FDifficultyProfile::MakeHard();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Parameters", meta = (ClampMin = "0.5"))
-	float MinGameTime = 3.0f;
+	EDifficultyMode Difficulty = EDifficultyMode::Easy;
 
+	int32 CurrentLevel = 1;
+	int32 BasketsThisRun = 0;
+	void UpdateLevel();
+
+	// --- Round timer ---
 	/** Current round length (shrinks as the score grows). */
 	float CurrentRoundLength = 10.0f;
 	float RoundTimeRemaining = 10.0f;
@@ -174,6 +206,8 @@ private:
 	bool bBasketPending = false;
 
 	void ShortenRound();
+	/** Basket reward: adds time (fraction of the round length), capped at a full bar. */
+	void GiveTimeBack(bool bSwish);
 
 	/**
 	 * The round clock is a looping timer (not actor Tick): world timers always run for game modes,
@@ -201,8 +235,10 @@ private:
 	// --- Scoring ---
 	int32 CurrentScore = 0;
 	int32 ScoreMultiplier = 1;
-	int32 HighScore = 0;
+	int32 HighScoreEasy = 0;
+	int32 HighScoreHard = 0;
 	bool bLastBasketSwish = false;
+	bool bLastBasketBuiltCombo = true;
 
 	/** Points for a swish are multiplied by this (on top of the combo multiplier). */
 	UPROPERTY(EditDefaultsOnly, Category = "Parameters", meta = (ClampMin = "1"))
@@ -224,16 +260,8 @@ private:
 	int32 CollectedGems = 0;
 	int32 GemsSpent = 0;
 
+	/** Chances come from the difficulty profile (CollectibleChancePercent / GemSharePercent) and rise with the level. */
 	void MaybeSpawnCollectible();
-
-	UPROPERTY(EditDefaultsOnly, Category = "Collectibles", meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
-	float CollectibleChancePercent = 25.0f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Collectibles", meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
-	float CoinChancePercent = 75.0f;
-
-	UPROPERTY(VisibleDefaultsOnly, Category = "Collectibles")
-	float GemChancePercent = 25.0f;
 
 	// --- Ads (pacing settings; the ads themselves live in UAdsSubsystem) ---
 	/** Show an interstitial when returning to the menu after this many finished games. */

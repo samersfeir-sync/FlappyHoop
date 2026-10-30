@@ -10,7 +10,9 @@
 
 AHoop::AHoop()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    // Ticks only while drifting (see StartDrift).
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = false;
 
     HoopMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HoopMesh"));
     RootComponent = HoopMesh;
@@ -48,7 +50,56 @@ void AHoop::BeginPlay()
     {
         GameMode->OnGameReset.AddUObject(this, &AHoop::ResetBallTracking);
     }
+}
 
+void AHoop::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (GameMode)
+    {
+        GameMode->OnGameReset.RemoveAll(this);
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
+void AHoop::StartDrift(double BaseZ, double MinZ, double MaxZ)
+{
+    DriftBaseZ = BaseZ;
+    DriftMinZ = FMath::Min(MinZ, MaxZ);
+    DriftMaxZ = FMath::Max(MinZ, MaxZ);
+    DriftPhase = 0.0;
+    DriftSign = FMath::RandBool() ? 1.0 : -1.0;
+
+    // Amount and speed are read every tick, so a level change mid-placement is picked up too.
+    SetActorTickEnabled(GameMode != nullptr);
+}
+
+void AHoop::StopDrift()
+{
+    SetActorTickEnabled(false);
+}
+
+void AHoop::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    // Hold still during the basket celebration, the second-chance panel and outside a run.
+    if (!GameMode || GameMode->GetCurrentGameState() != EGameStateEnum::Playing || GameMode->IsBasketPending())
+    {
+        return;
+    }
+
+    const double Amplitude = GameMode->GetHoopDriftAmplitude();
+    if (Amplitude <= 0.0)
+    {
+        return;
+    }
+
+    DriftPhase += DeltaSeconds * GameMode->GetHoopDriftCyclesPerSecond();
+
+    FVector Location = GetActorLocation();
+    Location.Z = FMath::Clamp(DriftBaseZ + DriftSign * Amplitude * FMath::Sin(DriftPhase * UE_DOUBLE_TWO_PI), DriftMinZ, DriftMaxZ);
+    SetActorLocation(Location);
 }
 
 void AHoop::SetRingRotation(bool bRightEdgeHoop)
@@ -208,15 +259,16 @@ void AHoop::SwitchSides()
         return;
     }
 
+    USoundBase* SoundToPlay = (bPendingSwish && SwishSound) ? SwishSound.Get() : ScoreSound.Get();
+    UGameplayStatics::PlaySound2D(this, SoundToPlay);
+
+    // Score first: it can raise the level, and the next hoop is placed (height band, drift) with the new level.
+    GameMode->ScoreBasket(bPendingSwish);
+
     if (IBallInterface* BallInterface = Cast<IBallInterface>(ScoringBall.Get()))
     {
         BallInterface->ChangeBallDirection();
     }
-
-    USoundBase* SoundToPlay = (bPendingSwish && SwishSound) ? SwishSound.Get() : ScoreSound.Get();
-    UGameplayStatics::PlaySound2D(this, SoundToPlay);
-
-    GameMode->ScoreBasket(bPendingSwish);
 
     bPendingSwish = false;
     ScoringBall.Reset();

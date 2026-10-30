@@ -6,6 +6,7 @@
 #include "Framework/BaseGameMode.h"
 #include "Systems/SaveSubsystem.h"
 #include "Systems/StoreSubsystem.h"
+#include "Systems/LeaderboardSubsystem.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
@@ -15,14 +16,30 @@ void UMainMenuWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	PlayButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnPlayClicked);
-	QuitButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnQuitClicked);
+	if (QuitButton) QuitButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnQuitClicked);
 	ShopButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnShopClicked);
 	SettingsButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnSettingsClicked);
 	NoAdsButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnNoAdsClicked);
 
+	if (LeaderboardButton)
+	{
+		LeaderboardButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnLeaderboardClicked);
+		LeaderboardButton->SetVisibility(ULeaderboardSubsystem::IsSupported() ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+
+	if (EasyButton) EasyButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnEasyClicked);
+	if (HardButton) HardButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnHardClicked);
+	if (DifficultyText) DifficultyText->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	if (ABaseGameMode* GameMode = ABaseGameMode::Get(this))
+	{
+		// Also covers the SetDifficulty console command.
+		GameMode->OnDifficultyChanged.AddWeakLambda(this, [this](EDifficultyMode) { ShowDifficulty(); });
+	}
+
 	// Same as the HUD: the menu as a whole is shown/hidden by the UI root, so its pieces are always on.
 	PlayButton->SetVisibility(ESlateVisibility::Visible);
-	QuitButton->SetVisibility(ESlateVisibility::Visible);
+	if (QuitButton) QuitButton->SetVisibility(ESlateVisibility::Visible);
 	ShopButton->SetVisibility(ESlateVisibility::Visible);
 	SettingsButton->SetVisibility(ESlateVisibility::Visible);
 	HighScoreText->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -45,18 +62,56 @@ void UMainMenuWidget::NativeDestruct()
 		Store->OnPricesUpdated.RemoveAll(this);
 	}
 
+	if (ABaseGameMode* GameMode = ABaseGameMode::Get(this))
+	{
+		GameMode->OnDifficultyChanged.RemoveAll(this);
+	}
+
 	Super::NativeDestruct();
 }
 
 void UMainMenuWidget::Refresh()
 {
-	if (const ABaseGameMode* GameMode = ABaseGameMode::Get(this))
-	{
-		UFunctionsLibrary::SetHighScoreText(HighScoreText, GameMode->GetHighScore());
-	}
-
+	ShowDifficulty();
 	UpdateNoAdsButton();
 	UpdateNoAdsPrice();
+}
+
+void UMainMenuWidget::ShowDifficulty()
+{
+	const ABaseGameMode* GameMode = ABaseGameMode::Get(this);
+	if (!GameMode)
+	{
+		return;
+	}
+
+	const EDifficultyMode Mode = GameMode->GetDifficulty();
+	UFunctionsLibrary::SetHighScoreText(HighScoreText, GameMode->GetHighScore(Mode));
+
+	if (EasyButton) EasyButton->SetIsEnabled(Mode != EDifficultyMode::Easy);
+	if (HardButton) HardButton->SetIsEnabled(Mode != EDifficultyMode::Hard);
+	if (DifficultyText) DifficultyText->SetText(Mode == EDifficultyMode::Hard ? HardLabel : EasyLabel);
+
+	OnDifficultyShown(Mode);
+}
+
+void UMainMenuWidget::SelectDifficulty(EDifficultyMode Mode)
+{
+	if (ABaseGameMode* GameMode = ABaseGameMode::Get(this))
+	{
+		GameMode->SetDifficulty(Mode);
+	}
+	ShowDifficulty();
+}
+
+void UMainMenuWidget::OnEasyClicked()
+{
+	SelectDifficulty(EDifficultyMode::Easy);
+}
+
+void UMainMenuWidget::OnHardClicked()
+{
+	SelectDifficulty(EDifficultyMode::Hard);
 }
 
 void UMainMenuWidget::UpdateNoAdsPrice()
@@ -118,5 +173,15 @@ void UMainMenuWidget::OnNoAdsClicked()
 	if (UStoreSubsystem* Store = UStoreSubsystem::Get(this))
 	{
 		Store->Purchase(FlappyHoopStore::RemoveAdsProductId);
+	}
+}
+
+void UMainMenuWidget::OnLeaderboardClicked()
+{
+	if (ULeaderboardSubsystem* Leaderboards = ULeaderboardSubsystem::Get(this))
+	{
+		// The board of the selected difficulty; signs in first if needed.
+		const ABaseGameMode* GameMode = ABaseGameMode::Get(this);
+		Leaderboards->ShowLeaderboard(GameMode ? GameMode->GetDifficulty() : EDifficultyMode::Easy);
 	}
 }

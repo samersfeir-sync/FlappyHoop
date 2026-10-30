@@ -10,7 +10,10 @@
 
 ABall::ABall()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	// Ticks only while a run is active (fall-speed cap). After the movement component, so the clamp sees this frame's velocity.
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+	PrimaryActorTick.TickGroup = TG_PostPhysics;
 
 	BallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BallMesh"));
 	RootComponent = BallMesh;
@@ -43,12 +46,52 @@ void ABall::BeginPlay()
 	InitialBallVelocity = ProjectileMovement->Velocity;
 	InitialDirection = Direction;
 
+	BaseGravityScale = ProjectileMovement->ProjectileGravityScale;
+	BaseVerticalImpulse = VerticalImpulse;
+	CurrentVerticalImpulse = VerticalImpulse;
+
 	GameMode = ABaseGameMode::Get(this);
 
 	if (GameMode)
 	{
 		GameMode->OnGameStarted.AddUObject(this, &ABall::ActivateBall);
 		GameMode->OnGameReset.AddUObject(this, &ABall::ResetBall);
+		GameMode->OnLevelChanged.AddUObject(this, &ABall::ApplyDifficulty);
+	}
+}
+
+void ABall::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (GameMode)
+	{
+		GameMode->OnGameStarted.RemoveAll(this);
+		GameMode->OnGameReset.RemoveAll(this);
+		GameMode->OnLevelChanged.RemoveAll(this);
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
+void ABall::ApplyDifficulty(int32 Level)
+{
+	if (!GameMode || !ProjectileMovement)
+	{
+		return;
+	}
+
+	ProjectileMovement->ProjectileGravityScale = BaseGravityScale * GameMode->GetBallGravityScale();
+	CurrentVerticalImpulse = BaseVerticalImpulse * GameMode->GetBallFlapStrength();
+	MaxFallSpeed = GameMode->GetBallMaxFallSpeed();
+}
+
+void ABall::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (MaxFallSpeed > 0.0f && ProjectileMovement && ProjectileMovement->IsActive()
+		&& ProjectileMovement->Velocity.Z < -MaxFallSpeed)
+	{
+		ProjectileMovement->Velocity.Z = -MaxFallSpeed;
 	}
 }
 
@@ -59,7 +102,7 @@ void ABall::LaunchBall()
 		return;
 	}
 
-	ProjectileMovement->Velocity = FVector(HorizontalImpulse * Direction, 0.0f, VerticalImpulse);
+	ProjectileMovement->Velocity = FVector(HorizontalImpulse * Direction, 0.0f, CurrentVerticalImpulse);
 	ProjectileMovement->Activate(true);
 	UGameplayStatics::PlaySound2D(this, FlapSound);
 }
@@ -82,6 +125,7 @@ void ABall::ActivateBall()
 {
 	SetActorHiddenInGame(false);
 	ProjectileMovement->Activate(true);
+	SetActorTickEnabled(true);
 }
 
 void ABall::ResetBall()
@@ -90,5 +134,6 @@ void ABall::ResetBall()
 	ProjectileMovement->Velocity = InitialBallVelocity;
 	SetActorHiddenInGame(true);
 	ProjectileMovement->Deactivate();
+	SetActorTickEnabled(false);
 	Direction = InitialDirection; // was hard-coded to -1, ignoring the editor value
 }

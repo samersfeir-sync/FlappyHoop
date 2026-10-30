@@ -33,6 +33,7 @@ private:
 
 	void OnRunPhaseChanged(EGameStateEnum OldPhase, EGameStateEnum NewPhase);
 	void SetPercent(float Percent);
+	void OnPointScored();
 	void StartTimer();
 	void UpdateProgressBar();
 
@@ -45,8 +46,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Parameters")
 	TObjectPtr<UMaterialInterface> BaseMaterial;
 
+	/** Fallback only: the combo window normally comes from the difficulty profile (ComboWindowSeconds). */
 	UPROPERTY(EditDefaultsOnly, Category = "Parameters", meta = (ClampMin = "0.1"))
 	float MaxComboTime = 5.0f;
+
+	/** Window of the combo currently draining (seconds). */
+	float ActiveComboTime = 5.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Parameters", meta = (ClampMin = "0.005"))
 	float TickInterval = 0.01f;

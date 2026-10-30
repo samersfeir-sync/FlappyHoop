@@ -32,6 +32,9 @@ public:
 	const UBallCatalog* GetBallCatalog() const { return BallCatalog; }
 	bool ShouldDebugConsentAsEEA() const { return bDebugConsentAsEEA; }
 	bool AreAdsChildDirected() const { return bChildDirectedAds; }
+	const FString& GetGameCenterLeaderboardID() const { return GameCenterLeaderboardID; }
+	const FString& GetGameCenterHardLeaderboardID() const { return GameCenterHardLeaderboardID; }
+	bool ShouldSignInToGameServicesAtStartup() const { return bSignInToGameServicesAtStartup; }
 
 private:
 
@@ -63,6 +66,36 @@ private:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Ads")
 	bool bChildDirectedAds = true;
+
+	/**
+	 * Game Center leaderboard ID for the high score (App Store Connect > Game Center > Leaderboards).
+	 * Android uses the "HighScore" entry of the Leaderboard Map in Project Settings > Android > Google Play Services.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Leaderboards")
+	FString GameCenterLeaderboardID = TEXT("flappyhoop.highscore");
+
+	/**
+	 * Game Center leaderboard ID for Hard mode. The Easy board is GameCenterLeaderboardID (old scores stay there).
+	 * Android uses the "HighScoreHard" entry of the Leaderboard Map.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Leaderboards")
+	FString GameCenterHardLeaderboardID = TEXT("flappyhoop.highscore.hard");
+
+	/**
+	 * Sign in to Google Play Games / Game Center when the game starts (returning players are signed in silently;
+	 * new players see the sign-in prompt once). Off: sign-in only happens when the leaderboard button is pressed.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Leaderboards")
+	bool bSignInToGameServicesAtStartup = true;
+
+	/**
+	 * Render resolution on phones (r.MobileContentScaleFactor), set from code so device profiles cannot override it.
+	 * 0 = the phone's native resolution (sharpest). Higher numbers are lower resolutions, e.g. 1.5 or 2 for weak phones.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Display", meta = (ClampMin = "0"))
+	float MobileResolutionScale = 0.0f;
+
+	void ApplyMobileResolution();
 
 	void HandleStartupMovieFinished();
 	void StartMusicAndBanner();

@@ -23,9 +23,18 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Hoop")
     void SetRingRotation(bool bRightEdgeHoop);
 
+    /**
+     * Placed at a new height: drifts up and down around BaseZ (amount/speed from the difficulty level),
+     * never leaving [MinZ, MaxZ]. Does nothing while the current level has no drift.
+     */
+    void StartDrift(double BaseZ, double MinZ, double MaxZ);
+    void StopDrift();
+
 protected:
 
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    virtual void Tick(float DeltaSeconds) override;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UStaticMeshComponent> HoopMesh;
@@ -116,4 +125,13 @@ private:
     TObjectPtr<ABaseGameMode> GameMode = nullptr;
 
     FTimerHandle SwitchSidesTimer;
+
+    // --- Drift (Hard mode) ---
+    double DriftBaseZ = 0.0;
+    double DriftMinZ = 0.0;
+    double DriftMaxZ = 0.0;
+    /** Phase in cycles; advanced by the level's speed so speed changes don't make the hoop jump. */
+    double DriftPhase = 0.0;
+    /** +1 or -1: whether this placement starts drifting up or down. */
+    double DriftSign = 1.0;
 };

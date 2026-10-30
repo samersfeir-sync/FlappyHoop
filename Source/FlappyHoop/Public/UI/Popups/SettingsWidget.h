@@ -58,6 +58,15 @@ private:
 
 	void UpdatePrivacyButton();
 
+	/** Optional: "Restore Purchases" (required by App Store Review). Shown on iOS only. */
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UButton> RestorePurchasesButton;
+
+	UFUNCTION()
+	void RestorePurchasesClicked();
+
+	void HandlePurchasesRestored(bool bAdsRemoved);
+
 	UFUNCTION()
 	void BackButtonClicked();
 

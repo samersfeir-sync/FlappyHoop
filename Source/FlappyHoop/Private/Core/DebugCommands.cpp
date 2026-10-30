@@ -9,6 +9,7 @@
 
 #include "Core/FlappyHoop.h"
 #include "Data/UserProgression.h"
+#include "Framework/BaseGameMode.h"
 #include "Systems/BallCatalogSubsystem.h"
 #include "Systems/EconomySubsystem.h"
 #include "Systems/SaveSubsystem.h"
@@ -104,6 +105,25 @@ namespace FlappyHoopDebug
 			Fresh.SaveVersion = Save->GetProgression().SaveVersion; // already in the new format, skip migration
 			Save->Save(Fresh);
 			UE_LOG(LogFlappyHoop, Display, TEXT("ResetProgress: save wiped. Restart the game to see a clean state."));
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs SetDifficultyCommand(
+		TEXT("SetDifficulty"),
+		TEXT("Debug: SetDifficulty Easy|Hard. Only works in the main menu (same as the menu buttons)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic([](const TArray<FString>& Args, UWorld* World)
+		{
+			ABaseGameMode* GameMode = ABaseGameMode::Get(World);
+			if (!GameMode || Args.Num() < 1)
+			{
+				UE_LOG(LogFlappyHoop, Warning, TEXT("Usage: SetDifficulty Easy|Hard"));
+				return;
+			}
+
+			const EDifficultyMode Mode = Args[0].Equals(TEXT("Hard"), ESearchCase::IgnoreCase) ? EDifficultyMode::Hard : EDifficultyMode::Easy;
+			const bool bChanged = GameMode->SetDifficulty(Mode);
+			UE_LOG(LogFlappyHoop, Display, TEXT("SetDifficulty: %s"), bChanged
+				? (Mode == EDifficultyMode::Hard ? TEXT("Hard") : TEXT("Easy"))
+				: TEXT("not in the main menu, ignored"));
 		}));
 }
 

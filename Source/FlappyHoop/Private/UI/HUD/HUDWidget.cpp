@@ -25,6 +25,12 @@ void UHUDWidget::NativeConstruct()
 		GameMode->OnRoundTimeUpdated.AddUObject(this, &UHUDWidget::OnRoundTimeUpdated);
 		GameMode->OnCoinCollected.AddUObject(this, &UHUDWidget::OnCoinCollected);
 		GameMode->OnSecondChanceGranted.AddUObject(this, &UHUDWidget::OnSecondChanceGranted);
+		GameMode->OnLevelChanged.AddUObject(this, &UHUDWidget::OnLevelChanged);
+	}
+
+	if (LevelText)
+	{
+		LevelText->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 
 	if (UEconomySubsystem* Economy = UEconomySubsystem::Get(this))
@@ -61,6 +67,7 @@ void UHUDWidget::NativeDestruct()
 		GameMode->OnRoundTimeUpdated.RemoveAll(this);
 		GameMode->OnCoinCollected.RemoveAll(this);
 		GameMode->OnSecondChanceGranted.RemoveAll(this);
+		GameMode->OnLevelChanged.RemoveAll(this);
 	}
 
 	if (UEconomySubsystem* Economy = UEconomySubsystem::Get(this))
@@ -82,6 +89,24 @@ void UHUDWidget::ResetForNewRun()
 	TimeProgressBar->SetPercent(1.0f);
 	HideComboText();
 	RefreshTotals();
+
+	if (LevelText)
+	{
+		LevelText->SetText(FText::Format(LevelFormat, FText::AsNumber(1)));
+	}
+}
+
+void UHUDWidget::OnLevelChanged(int32 Level)
+{
+	if (LevelText)
+	{
+		LevelText->SetText(FText::Format(LevelFormat, FText::AsNumber(Level)));
+	}
+
+	if (Level > 1 && LevelUpAnimation)
+	{
+		PlayAnimation(LevelUpAnimation);
+	}
 }
 
 void UHUDWidget::OnPauseClicked()
@@ -105,7 +130,8 @@ void UHUDWidget::OnPointScored()
 		return;
 	}
 
-	TimeProgressBar->SetPercent(1.0f);
+	// Time back per basket depends on the difficulty, so the bar isn't always full again.
+	TimeProgressBar->SetPercent(GameMode->GetRoundTimeFraction());
 	ScoreText->SetText(FText::AsNumber(GameMode->GetCurrentScore()));
 	ShowComboText();
 }
@@ -133,7 +159,8 @@ void UHUDWidget::OnSecondChanceGranted()
 
 void UHUDWidget::ShowComboText()
 {
-	const int32 ScoreMultiplier = GameMode->GetScoreMultiplier();
+	// A basket that didn't build the combo (swish-only mode) shows no combo text.
+	const int32 ScoreMultiplier = GameMode->DidLastBasketBuildCombo() ? GameMode->GetScoreMultiplier() : 1;
 	const bool bSwish = GameMode->WasLastBasketSwish();
 
 	FString Text;

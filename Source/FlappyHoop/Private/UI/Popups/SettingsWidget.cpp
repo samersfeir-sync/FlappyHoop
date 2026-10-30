@@ -10,6 +10,7 @@
 #include "Systems/SaveSubsystem.h"
 #include "Systems/FlappyAudioSubsystem.h"
 #include "Systems/AdsSubsystem.h"
+#include "Systems/StoreSubsystem.h"
 
 void USettingsWidget::NativeConstruct()
 {
@@ -44,6 +45,17 @@ void USettingsWidget::NativeConstruct()
 		Ads->OnConsentFinished.AddUObject(this, &USettingsWidget::UpdatePrivacyButton);
 	}
 	UpdatePrivacyButton();
+
+	if (RestorePurchasesButton)
+	{
+		RestorePurchasesButton->SetVisibility(UStoreSubsystem::ShouldShowRestoreButton() ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		RestorePurchasesButton->OnClicked.AddUniqueDynamic(this, &USettingsWidget::RestorePurchasesClicked);
+
+		if (UStoreSubsystem* Store = UStoreSubsystem::Get(this))
+		{
+			Store->OnPurchasesRestored.AddUObject(this, &USettingsWidget::HandlePurchasesRestored);
+		}
+	}
 }
 
 void USettingsWidget::NativeDestruct()
@@ -53,7 +65,34 @@ void USettingsWidget::NativeDestruct()
 		Ads->OnConsentFinished.RemoveAll(this);
 	}
 
+	if (UStoreSubsystem* Store = UStoreSubsystem::Get(this))
+	{
+		Store->OnPurchasesRestored.RemoveAll(this);
+	}
+
 	Super::NativeDestruct();
+}
+
+void USettingsWidget::RestorePurchasesClicked()
+{
+	if (!IsOpen() || !RestorePurchasesButton)
+	{
+		return;
+	}
+
+	if (UStoreSubsystem* Store = UStoreSubsystem::Get(this))
+	{
+		RestorePurchasesButton->SetIsEnabled(false); // re-enabled when the restore answers
+		Store->RestorePurchases();
+	}
+}
+
+void USettingsWidget::HandlePurchasesRestored(bool bAdsRemoved)
+{
+	if (RestorePurchasesButton)
+	{
+		RestorePurchasesButton->SetIsEnabled(true);
+	}
 }
 
 void USettingsWidget::OnPopupOpening()

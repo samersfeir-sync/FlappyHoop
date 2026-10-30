@@ -49,9 +49,23 @@ void UAdsSubsystem::InitializeADUnits()
 	InterstitialADUnitID = TEXT("ca-app-pub-5279001044325653/4163109237");
 	RewardedADUnitID = TEXT("ca-app-pub-5279001044325653/7632947939");
 #elif PLATFORM_IOS
-	BannerADUnitID = TEXT("");
-	InterstitialADUnitID = TEXT("");
-	RewardedADUnitID = TEXT("");
+	// TODO(iOS): paste the ad unit IDs of the iOS app from the AdMob console (Apps > FlappyHoop iOS > Ad units).
+	BannerADUnitID = TEXT("ca-app-pub-5279001044325653/9597056826");
+	InterstitialADUnitID = TEXT("ca-app-pub-5279001044325653/4655721339");
+	RewardedADUnitID = TEXT("ca-app-pub-5279001044325653/1037920858");
+
+#if !UE_BUILD_SHIPPING
+	// Until the real IDs are filled in, non-Shipping builds use Google's official iOS test units
+	// (always fill, never count as invalid traffic). Shipping builds with empty IDs simply show no ads.
+	if (BannerADUnitID.IsEmpty())       { BannerADUnitID       = TEXT("ca-app-pub-3940256099942544/2934735716"); }
+	if (InterstitialADUnitID.IsEmpty()) { InterstitialADUnitID = TEXT("ca-app-pub-3940256099942544/4411468910"); }
+	if (RewardedADUnitID.IsEmpty())     { RewardedADUnitID     = TEXT("ca-app-pub-3940256099942544/1712485313"); }
+#else
+	if (BannerADUnitID.IsEmpty() || InterstitialADUnitID.IsEmpty() || RewardedADUnitID.IsEmpty())
+	{
+		UE_LOG(LogFlappyHoop, Error, TEXT("[Ads] iOS ad unit IDs are not set (AdsSubsystem.cpp): some ads are disabled"));
+	}
+#endif
 #endif
 }
 

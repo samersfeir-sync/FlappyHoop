@@ -8,6 +8,7 @@
 #include "Gameplay/Coins.h"
 #include "Gameplay/Gems.h"
 #include "Systems/EconomySubsystem.h"
+#include "Systems/LeaderboardSubsystem.h"
 #include "Systems/SaveSubsystem.h"
 #include "Systems/AdsSubsystem.h"
 #include "Systems/BallCatalogSubsystem.h"
@@ -46,8 +47,6 @@ void ABaseGameMode::BeginPlay()
 
 	bCanWatchAdDefault = bCanWatchAd;
 	GemsNeededForSecondChance = BaseGemCost;
-	CurrentRoundLength = MaxGameTime;
-	RoundTimeRemaining = MaxGameTime;
 
 	DefaultBall = Cast<ABall>(UGameplayStatics::GetActorOfClass(World, ABall::StaticClass()));
 
@@ -67,8 +66,13 @@ void ABaseGameMode::BeginPlay()
 	if (const USaveSubsystem* Save = USaveSubsystem::Get(this))
 	{
 		const FUserProgression& Progression = Save->GetProgression();
-		HighScore = Progression.HighScore;
+		HighScoreEasy = Progression.HighScore;
+		HighScoreHard = Progression.HighScoreHard;
+		Difficulty = Progression.Difficulty;
 	}
+
+	CurrentRoundLength = GetDifficultyProfile().StartRoundTime;
+	RoundTimeRemaining = CurrentRoundLength;
 
 	ApplyBallSettings();
 	if (UBallCatalogSubsystem* Catalog = UBallCatalogSubsystem::Get(this))
@@ -165,14 +169,18 @@ void ABaseGameMode::ResetRunState()
 	StopRoundTimer();
 	GetWorldTimerManager().ClearTimer(TimeUpFallbackTimer);
 
-	CurrentRoundLength = MaxGameTime;
-	RoundTimeRemaining = MaxGameTime;
+	CurrentRoundLength = GetDifficultyProfile().StartRoundTime;
+	RoundTimeRemaining = CurrentRoundLength;
 	bTimeEnded = false;
 	bBasketPending = false;
+
+	CurrentLevel = 1;
+	BasketsThisRun = 0;
 
 	CurrentScore = 0;
 	ScoreMultiplier = 1;
 	bLastBasketSwish = false;
+	bLastBasketBuiltCombo = true;
 
 	CollectedCoins = 0;
 	CollectedGems = 0;
@@ -194,6 +202,7 @@ void ABaseGameMode::StartRun()
 	SetRunPhase(EGameStateEnum::Playing);
 	OnRoundTimeUpdated.Broadcast(1.0f);
 	StartRoundTimer();
+	OnLevelChanged.Broadcast(CurrentLevel); // actors pick up the level-1 values before the ball appears
 	OnGameStarted.Broadcast();
 }
 
@@ -229,13 +238,27 @@ void ABaseGameMode::EndGame()
 	}
 
 	USaveSubsystem* Save = USaveSubsystem::Get(this);
-	if (Save && CurrentScore > HighScore)
+	if (Save && CurrentScore > GetHighScore())
 	{
-		HighScore = CurrentScore;
-
+		// Each difficulty keeps its own best and its own leaderboard.
 		FUserProgression Progression = Save->GetProgression();
-		Progression.HighScore = HighScore;
+		if (Difficulty == EDifficultyMode::Hard)
+		{
+			HighScoreHard = CurrentScore;
+			Progression.HighScoreHard = CurrentScore;
+		}
+		else
+		{
+			HighScoreEasy = CurrentScore;
+			Progression.HighScore = CurrentScore;
+		}
 		Save->Save(Progression);
+
+		// New personal best: report it (kept and sent after sign-in if the player isn't signed in).
+		if (ULeaderboardSubsystem* Leaderboards = ULeaderboardSubsystem::Get(this))
+		{
+			Leaderboards->SubmitScore(CurrentScore, Difficulty);
+		}
 	}
 
 	StopRoundTimer();
@@ -269,7 +292,73 @@ void ABaseGameMode::OnTimeUpFallback()
 
 void ABaseGameMode::ShortenRound()
 {
-	CurrentRoundLength = FMath::Max(CurrentRoundLength - MaxGameTime * GameTimeReductionRate, MinGameTime);
+	const FDifficultyProfile& Profile = GetDifficultyProfile();
+	CurrentRoundLength = FMath::Max(CurrentRoundLength - Profile.StartRoundTime * Profile.RoundShrinkPerBasket, Profile.MinRoundTime);
+	RoundTimeRemaining = FMath::Min(RoundTimeRemaining, CurrentRoundLength);
+}
+
+void ABaseGameMode::GiveTimeBack(bool bSwish)
+{
+	const FDifficultyProfile& Profile = GetDifficultyProfile();
+	float Fraction = Profile.TimeBackFraction.Evaluate(GetLevelAlpha());
+	if (bSwish)
+	{
+		Fraction += Profile.SwishTimeBonusFraction;
+	}
+
+	RoundTimeRemaining = FMath::Min(RoundTimeRemaining + CurrentRoundLength * Fraction, CurrentRoundLength);
+	OnRoundTimeUpdated.Broadcast(GetRoundTimeFraction());
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Difficulty
+// ---------------------------------------------------------------------------------------------------------------------
+
+const FDifficultyProfile& ABaseGameMode::GetDifficultyProfile() const
+{
+	return Difficulty == EDifficultyMode::Hard ? HardProfile : EasyProfile;
+}
+
+float ABaseGameMode::GetLevelAlpha() const
+{
+	const int32 MaxLevel = GetDifficultyProfile().MaxLevel;
+	return MaxLevel > 1 ? FMath::Clamp(static_cast<float>(CurrentLevel - 1) / static_cast<float>(MaxLevel - 1), 0.0f, 1.0f) : 1.0f;
+}
+
+bool ABaseGameMode::SetDifficulty(EDifficultyMode NewMode)
+{
+	if (CurrentGameState != EGameStateEnum::MainMenu)
+	{
+		return false;
+	}
+
+	if (NewMode != Difficulty)
+	{
+		Difficulty = NewMode;
+		ResetRunState(); // round length etc. for the new mode
+
+		if (USaveSubsystem* Save = USaveSubsystem::Get(this))
+		{
+			FUserProgression Progression = Save->GetProgression();
+			Progression.Difficulty = NewMode;
+			Save->Save(Progression);
+		}
+
+		OnDifficultyChanged.Broadcast(NewMode);
+	}
+	return true;
+}
+
+void ABaseGameMode::UpdateLevel()
+{
+	const FDifficultyProfile& Profile = GetDifficultyProfile();
+	const int32 NewLevel = FMath::Min(1 + BasketsThisRun / FMath::Max(Profile.BasketsPerLevel, 1), FMath::Max(Profile.MaxLevel, 1));
+	if (NewLevel != CurrentLevel)
+	{
+		CurrentLevel = NewLevel;
+		UE_LOG(LogFlappyHoop, Log, TEXT("Level %d (%s)"), CurrentLevel, Difficulty == EDifficultyMode::Hard ? TEXT("Hard") : TEXT("Easy"));
+		OnLevelChanged.Broadcast(CurrentLevel);
+	}
 }
 
 bool ABaseGameMode::CanLaunchBall() const
@@ -298,16 +387,24 @@ void ABaseGameMode::ScoreBasket(bool bSwish)
 	bTimeEnded = false;
 	GetWorldTimerManager().ClearTimer(TimeUpFallbackTimer);
 	ShortenRound();
-	RefillRoundTime();
+	GiveTimeBack(bSwish);
 
 	bLastBasketSwish = bSwish;
+	bLastBasketBuiltCombo = bSwish || !GetDifficultyProfile().bOnlySwishBuildsCombo;
 	CurrentScore += ScoreMultiplier * (bSwish ? SwishScoreMultiplier : 1);
 
-	// Listeners read the multiplier used for this basket, then the combo grows.
+	// Listeners read the multiplier used for this basket, then the combo grows (in swish-only modes, only on a swish).
 	OnPointScored.Broadcast();
-	ScoreMultiplier++;
+	if (bLastBasketBuiltCombo)
+	{
+		ScoreMultiplier++;
+	}
 
+	// Collectibles use the level this basket was made at; the next hoop already uses the new level.
 	MaybeSpawnCollectible();
+
+	BasketsThisRun++;
+	UpdateLevel();
 }
 
 void ABaseGameMode::NotifyBallLanded()
@@ -385,9 +482,13 @@ void ABaseGameMode::MaybeSpawnCollectible()
 		return;
 	}
 
-	if (FMath::FRandRange(0.0f, 100.0f) <= CollectibleChancePercent)
+	const FDifficultyProfile& Profile = GetDifficultyProfile();
+	const float Alpha = GetLevelAlpha();
+
+	if (FMath::FRandRange(0.0f, 100.0f) < Profile.CollectibleChancePercent.Evaluate(Alpha))
 	{
-		ACoins* ToActivate = FMath::FRandRange(0.0f, 100.0f) <= CoinChancePercent ? DefaultCoin.Get() : DefaultGem.Get();
+		const bool bGem = FMath::FRandRange(0.0f, 100.0f) < Profile.GemSharePercent.Evaluate(Alpha);
+		ACoins* ToActivate = bGem ? DefaultGem.Get() : DefaultCoin.Get();
 		ToActivate->ActivateCoin(true);
 	}
 }
@@ -523,16 +624,3 @@ void ABaseGameMode::GrantSecondChance()
 	SetRunPhase(EGameStateEnum::Playing);
 	OnSecondChanceGranted.Broadcast();
 }
-
-#if WITH_EDITOR
-void ABaseGameMode::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(ABaseGameMode, CoinChancePercent))
-	{
-		CoinChancePercent = FMath::Clamp(CoinChancePercent, 0.0f, 100.0f);
-		GemChancePercent = 100.0f - CoinChancePercent;
-	}
-}
-#endif

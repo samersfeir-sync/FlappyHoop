@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Data/BallsShopStruct.h"
 #include "Data/BallType.h"
+#include "Data/DifficultyTypes.h"
 #include "UserProgression.generated.h"
 
 USTRUCT(BlueprintType)
@@ -10,8 +11,17 @@ struct FUserProgression
 {
     GENERATED_BODY()
 
+    /** Best score on Easy (saves from before difficulty modes land here too). */
     UPROPERTY(EditDefaultsOnly, Category = "Progression")
     int32 HighScore = 0;
+
+    /** Best score on Hard. */
+    UPROPERTY(EditDefaultsOnly, Category = "Progression")
+    int32 HighScoreHard = 0;
+
+    /** Last difficulty picked in the main menu. */
+    UPROPERTY(EditDefaultsOnly, Category = "Preference")
+    EDifficultyMode Difficulty = EDifficultyMode::Easy;
 
     UPROPERTY(EditDefaultsOnly, Category = "Collectibles")
     int32 TotalCoins = 0;

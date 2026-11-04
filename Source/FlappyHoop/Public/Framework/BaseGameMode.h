@@ -103,7 +103,20 @@ public:
 	// --- Round timer ---
 	/** 1 = full time left, 0 = time is up. */
 	float GetRoundTimeFraction() const;
+	/** Seconds left in the current round. */
+	float GetRoundTimeRemaining() const { return RoundTimeRemaining; }
+	/** Full length of the current round in seconds (shrinks as the score grows). */
+	float GetCurrentRoundLength() const { return CurrentRoundLength; }
 	bool GetTimeEndedBool() const { return bTimeEnded; }
+
+	// --- Low-time warning (read by the HUD) ---
+	/** At or below this many seconds the timer bar is fully red and the low-time flash can start. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Low Time", meta = (ClampMin = "0.0"))
+	float LowTimeSeconds = 3.0f;
+
+	/** Flash the screen red on and off while the round time is at or below LowTimeSeconds. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Low Time")
+	bool bLowTimeScreenFlash = true;
 
 	// --- Events reported by actors ---
 	/** A valid basket was made; input and the round timer freeze until ScoreBasket. */

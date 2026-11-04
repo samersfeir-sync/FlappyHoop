@@ -9,6 +9,7 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
+#include "Components/Image.h"
 #include "Animation/WidgetAnimation.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -36,6 +37,18 @@ void UHUDWidget::NativeConstruct()
 	if (DifficultyText)
 	{
 		DifficultyText->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+
+	if (TimeText)
+	{
+		TimeText->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+
+	if (LowTimeFlashImage)
+	{
+		// Never blocks taps; starts invisible.
+		LowTimeFlashImage->SetVisibility(ESlateVisibility::HitTestInvisible);
+		LowTimeFlashImage->SetRenderOpacity(0.0f);
 	}
 
 	if (UEconomySubsystem* Economy = UEconomySubsystem::Get(this))
@@ -88,10 +101,22 @@ void UHUDWidget::NativeDestruct()
 	Super::NativeDestruct();
 }
 
+void UHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	UpdateLowTimeFlash(InDeltaTime);
+}
+
 void UHUDWidget::ResetForNewRun()
 {
 	ScoreText->SetText(FText::AsNumber(0));
 	TimeProgressBar->SetPercent(1.0f);
+	UpdateTimerDisplay();
+	FlashTime = 0.0f;
+	if (LowTimeFlashImage)
+	{
+		LowTimeFlashImage->SetRenderOpacity(0.0f);
+	}
 	HideComboText();
 	RefreshTotals();
 
@@ -152,14 +177,71 @@ void UHUDWidget::OnPointScored()
 	}
 
 	// Time back per basket depends on the difficulty, so the bar isn't always full again.
-	TimeProgressBar->SetPercent(GameMode->GetRoundTimeFraction());
+	UpdateTimerDisplay();
 	ScoreText->SetText(FText::AsNumber(GameMode->GetCurrentScore()));
 	ShowComboText();
 }
 
 void UHUDWidget::OnRoundTimeUpdated(float Fraction)
 {
-	TimeProgressBar->SetPercent(Fraction);
+	UpdateTimerDisplay();
+}
+
+void UHUDWidget::UpdateTimerDisplay()
+{
+	if (!GameMode)
+	{
+		return;
+	}
+
+	const float Remaining = GameMode->GetRoundTimeRemaining();
+	const float RoundLength = GameMode->GetCurrentRoundLength();
+	const float LowTime = GameMode->LowTimeSeconds;
+
+	TimeProgressBar->SetPercent(GameMode->GetRoundTimeFraction());
+
+	// 1 with a full round, 0 at LowTimeSeconds and below. If the whole round is <= LowTimeSeconds, it's always red.
+	const float Range = RoundLength - LowTime;
+	const float Alpha = Range > KINDA_SMALL_NUMBER ? FMath::Clamp((Remaining - LowTime) / Range, 0.0f, 1.0f) : 0.0f;
+
+	const FLinearColor BarColor = Alpha >= 0.5f
+		? FLinearColor::LerpUsingHSV(TimerMidColor, TimerFullColor, (Alpha - 0.5f) * 2.0f)
+		: FLinearColor::LerpUsingHSV(TimerLowColor, TimerMidColor, Alpha * 2.0f);
+	TimeProgressBar->SetFillColorAndOpacity(BarColor);
+
+	if (TimeText)
+	{
+		const int32 Seconds = FMath::Max(0, FMath::CeilToInt(Remaining - KINDA_SMALL_NUMBER));
+		TimeText->SetText(FText::Format(TimeTextFormat, FText::AsNumber(Seconds)));
+	}
+}
+
+void UHUDWidget::UpdateLowTimeFlash(float DeltaSeconds)
+{
+	if (!LowTimeFlashImage)
+	{
+		return;
+	}
+
+	const UWorld* World = GetWorld();
+	const bool bFlash = GameMode
+		&& GameMode->bLowTimeScreenFlash
+		&& GameMode->GetCurrentGameState() == EGameStateEnum::Playing
+		&& !GameMode->GetTimeEndedBool()
+		&& !(World && World->IsPaused())
+		&& GameMode->GetRoundTimeRemaining() <= GameMode->LowTimeSeconds;
+
+	if (!bFlash)
+	{
+		FlashTime = 0.0f;
+		LowTimeFlashImage->SetRenderOpacity(0.0f);
+		return;
+	}
+
+	// Smooth on/off pulse: starts at 0, peaks at FlashMaxOpacity, FlashesPerSecond times a second.
+	FlashTime += DeltaSeconds;
+	const float Pulse = 0.5f - 0.5f * FMath::Cos(FlashTime * FlashesPerSecond * 2.0f * PI);
+	LowTimeFlashImage->SetRenderOpacity(Pulse * FlashMaxOpacity);
 }
 
 void UHUDWidget::OnCoinCollected(bool bCoin)
@@ -175,7 +257,7 @@ void UHUDWidget::OnBalanceChanged(int32 Coins, int32 Gems)
 void UHUDWidget::OnSecondChanceGranted()
 {
 	RefreshTotals();
-	TimeProgressBar->SetPercent(1.0f);
+	UpdateTimerDisplay();
 }
 
 void UHUDWidget::ShowComboText()

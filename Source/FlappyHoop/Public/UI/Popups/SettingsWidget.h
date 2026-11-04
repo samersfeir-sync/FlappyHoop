@@ -8,6 +8,9 @@
 
 class UButton;
 class UBorder;
+class UTextBlock;
+class USizeBox;
+enum class EFlappyCloudSyncResult : uint8;
 class USoundClass;
 class USoundMix;
 
@@ -53,19 +56,69 @@ private:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UButton> PrivacyButton;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<USizeBox> PrivacySizeBox;
+
 	UFUNCTION()
 	void PrivacyButtonClicked();
 
 	void UpdatePrivacyButton();
 
-	/** Optional: "Restore Purchases" (required by App Store Review). Shown on iOS only. */
+	/**
+	 * Optional: "Restore Purchases". Restores "remove ads" from the store AND gems, coins, balls and high scores
+	 * from the cloud save. Always visible; enabled on iOS (App Store Review requires it) and wherever cloud save
+	 * works (Android). Disabled in the editor/desktop unless bSimulateCloudSave is on.
+	 */
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UButton> RestorePurchasesButton;
+
+	/**
+	 * Optional: one line under the button. Shows "Restoring..." while it runs; the result is shown in the phone's own
+	 * popup on Android/iOS, and in this text in the editor/desktop. Cleared when Settings opens again.
+	 */
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> RestoreStatusText;
 
 	UFUNCTION()
 	void RestorePurchasesClicked();
 
 	void HandlePurchasesRestored(bool bAdsRemoved);
+	void HandleCloudSyncFinished(EFlappyCloudSyncResult Result);
+	void FinishRestoreIfDone();
+
+	/** True where pressing Restore does something (iOS store restore, or a cloud save backend). */
+	bool CanRestore() const;
+	void SetRestoreStatus(const FText& Text);
+
+	bool bWaitingForStoreRestore = false;
+	bool bWaitingForCloudRestore = false;
+	uint8 CloudRestoreResult = 0; // EFlappyCloudSyncResult
+
+	/** Title and button of the phone popup that reports the restore result. */
+	UPROPERTY(EditDefaultsOnly, Category = "Restore")
+	FText RestoreDialogTitle = NSLOCTEXT("FlappyHoop", "RestoreDialogTitle", "Restore Purchases");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Restore")
+	FText RestoreDialogButton = NSLOCTEXT("FlappyHoop", "RestoreDialogButton", "OK");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Restore")
+	FText RestoringText = NSLOCTEXT("FlappyHoop", "Restoring", "Restoring...");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Restore")
+	FText RestoredText = NSLOCTEXT("FlappyHoop", "Restored", "Purchases and progress restored");
+
+	/** Shown when cloud save isn't available here (only the store restore ran). */
+	UPROPERTY(EditDefaultsOnly, Category = "Restore")
+	FText PurchasesRestoredText = NSLOCTEXT("FlappyHoop", "PurchasesRestored", "Purchases restored");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Restore")
+	FText NotSignedInText = NSLOCTEXT("FlappyHoop", "RestoreNotSignedIn", "Sign in to Google Play Games to restore your progress");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Restore")
+	FText NoICloudText = NSLOCTEXT("FlappyHoop", "RestoreNoICloud", "Sign in to iCloud to back up and restore your progress");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Restore")
+	FText RestoreFailedText = NSLOCTEXT("FlappyHoop", "RestoreFailed", "Couldn't reach the cloud. Please try again later.");
 
 	UFUNCTION()
 	void BackButtonClicked();

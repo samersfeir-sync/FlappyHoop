@@ -1,5 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+using System.IO;
 using UnrealBuildTool;
 
 public class FlappyHoop : ModuleRules
@@ -24,8 +25,16 @@ public class FlappyHoop : ModuleRules
 			"Slate",
 			"SlateCore",
 			"MoviePlayer",
-			"OnlineSubsystem"   // Google Play Games leaderboards (OnlineSubsystemGooglePlay, Android)
+			"OnlineSubsystem",  // Google Play Games leaderboards (OnlineSubsystemGooglePlay, Android)
+			"Json"              // cloud save format
 		});
+
+		if (Target.Platform == UnrealTargetPlatform.Android)
+		{
+			PrivateDependencyModuleNames.Add("Launch"); // JNI (FJavaWrapper) for cloud save
+			// Google Play Games Saved Games glue added to GameActivity (cloud save).
+			AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModuleDirectory, "FlappyHoop_UPL.xml"));
+		}
 
 		if (Target.Platform == UnrealTargetPlatform.IOS)
 		{

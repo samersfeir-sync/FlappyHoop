@@ -35,6 +35,8 @@ public:
 	const FString& GetGameCenterLeaderboardID() const { return GameCenterLeaderboardID; }
 	const FString& GetGameCenterHardLeaderboardID() const { return GameCenterHardLeaderboardID; }
 	bool ShouldSignInToGameServicesAtStartup() const { return bSignInToGameServicesAtStartup; }
+	bool IsCloudSaveEnabled() const { return bEnableCloudSave; }
+	bool ShouldSimulateCloudSave() const { return bSimulateCloudSave; }
 
 private:
 
@@ -87,6 +89,21 @@ private:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Leaderboards")
 	bool bSignInToGameServicesAtStartup = true;
+
+	/**
+	 * Back up gems, coins, owned/selected balls, high scores and "remove ads" to the cloud and restore them after a
+	 * reinstall or on a new device. Android: Google Play Games Saved Games (needs sign-in, and "Saved games" turned on
+	 * in Play Console). iOS: iCloud key-value storage (Project Settings > iOS > Enable Cloud Kit Support).
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Cloud Save")
+	bool bEnableCloudSave = true;
+
+	/**
+	 * Testing only (ignored in Shipping and on phones): in the editor/desktop, use Saved/SimulatedCloud/flappyhoop_progress.json
+	 * as the "cloud", to try restores without a device. Delete your local save (or use ResetProgress) to simulate a reinstall.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Cloud Save")
+	bool bSimulateCloudSave = false;
 
 	/**
 	 * Render resolution on phones (r.MobileContentScaleFactor), set from code so device profiles cannot override it.

@@ -9,6 +9,9 @@
 
 class UMySaveGame;
 
+/** Fired after every Save() with the new progression (cloud save listens to it). */
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnProgressionSaved, const FUserProgression& /*Progression*/);
+
 /**
  * Owns the player's progression and the save file.
  * Loads (and migrates) on startup, and writes changes asynchronously
@@ -30,6 +33,8 @@ public:
 
 	/** Replaces the progression and saves it to disk (async). */
 	void Save(const FUserProgression& NewProgression);
+
+	FOnProgressionSaved OnProgressionSaved;
 
 private:
 

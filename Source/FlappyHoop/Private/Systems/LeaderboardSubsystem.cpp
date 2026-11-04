@@ -273,10 +273,12 @@ void ULeaderboardSubsystem::OnGooglePlayLoginComplete(int32 LocalUserNum, bool b
 	{
 		UE_LOG(LogFlappyHoop, Log, TEXT("[Leaderboard] Google Play Games sign-in failed: %s"), *Error);
 		bShowLeaderboardAfterSignIn = false;
+		OnSignInAttemptFinished.Broadcast(false);
 		return;
 	}
 
 	SetSignedIn(true);
+	OnSignInAttemptFinished.Broadcast(true);
 
 	if (bShowLeaderboardAfterSignIn)
 	{
@@ -359,6 +361,7 @@ void ULeaderboardSubsystem::HandleGameCenterAuth(bool bAuthenticated, bool bHasS
 {
 	bGameCenterHasSignInUI = bHasSignInUI;
 	SetSignedIn(bAuthenticated);
+	OnSignInAttemptFinished.Broadcast(bAuthenticated);
 
 	if (bAuthenticated && bShowLeaderboardAfterSignIn)
 	{

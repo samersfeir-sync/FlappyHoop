@@ -13,6 +13,7 @@
 #include "Systems/BallCatalogSubsystem.h"
 #include "Systems/EconomySubsystem.h"
 #include "Systems/SaveSubsystem.h"
+#include "Systems/CloudSaveSubsystem.h"
 #include "HAL/IConsoleManager.h"
 #include "Engine/World.h"
 
@@ -105,6 +106,35 @@ namespace FlappyHoopDebug
 			Fresh.SaveVersion = Save->GetProgression().SaveVersion; // already in the new format, skip migration
 			Save->Save(Fresh);
 			UE_LOG(LogFlappyHoop, Display, TEXT("ResetProgress: save wiped. Restart the game to see a clean state."));
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CloudSyncCommand(
+		TEXT("CloudSync"),
+		TEXT("Debug: merges local progress with the cloud save now (Restore Purchases does the same). In the editor, turn on bSimulateCloudSave on BP_GameInfoInstance."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (UCloudSaveSubsystem* CloudSave = UCloudSaveSubsystem::Get(World))
+			{
+				CloudSave->RestoreNow();
+				UE_LOG(LogFlappyHoop, Display, TEXT("CloudSync: started (see [CloudSave] lines)"));
+			}
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CloudStatusCommand(
+		TEXT("CloudStatus"),
+		TEXT("Debug: prints the local balances and the cloud-sync bookkeeping."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic([](const TArray<FString>& Args, UWorld* World)
+		{
+			const USaveSubsystem* Save = USaveSubsystem::Get(World);
+			const UCloudSaveSubsystem* CloudSave = UCloudSaveSubsystem::Get(World);
+			if (!Save)
+			{
+				return;
+			}
+			const FUserProgression& P = Save->GetProgression();
+			UE_LOG(LogFlappyHoop, Display, TEXT("CloudStatus: supported=%d synced-once=%d coins=%d (base %d) gems=%d (base %d) balls=%d selectedAt=%lld lastResult=%d"),
+				(CloudSave && CloudSave->IsSupported()) ? 1 : 0, P.bCloudSynced ? 1 : 0, P.TotalCoins, P.CloudBaseCoins, P.TotalGems, P.CloudBaseGems,
+				P.OwnedBalls.Num(), P.BallSelectedAt, CloudSave ? static_cast<int32>(CloudSave->GetLastResult()) : -1);
 		}));
 
 	static FAutoConsoleCommandWithWorldAndArgs SetDifficultyCommand(

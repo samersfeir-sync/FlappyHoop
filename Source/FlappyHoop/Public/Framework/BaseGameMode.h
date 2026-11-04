@@ -271,6 +271,9 @@ private:
 	/** Puts the selected ball's mesh on the ball actor. */
 	void ApplyBallSettings();
 
+	/** Re-reads the saved high scores (after a cloud restore). */
+	void ReloadHighScores();
+
 	// --- Collectibles ---
 	int32 CollectedCoins = 0;
 	int32 CollectedGems = 0;

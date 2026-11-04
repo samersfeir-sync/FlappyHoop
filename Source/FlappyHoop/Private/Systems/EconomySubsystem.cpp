@@ -74,6 +74,11 @@ bool UEconomySubsystem::TrySpend(int32 Coins, int32 Gems)
 	return true;
 }
 
+void UEconomySubsystem::BroadcastBalance()
+{
+	OnBalanceChanged.Broadcast(GetCoins(), GetGems());
+}
+
 void UEconomySubsystem::ApplyDelta(int32 CoinDelta, int32 GemDelta)
 {
 	USaveSubsystem* Save = GetSave();

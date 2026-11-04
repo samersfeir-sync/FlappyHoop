@@ -61,6 +61,9 @@ public:
 
 	FOnGameServicesSignInChanged OnSignInChanged;
 
+	/** Fired whenever a sign-in attempt ends (success or failure/cancel), even if the state didn't change. */
+	FOnGameServicesSignInChanged OnSignInAttemptFinished;
+
 private:
 
 	void SetSignedIn(bool bNewSignedIn);

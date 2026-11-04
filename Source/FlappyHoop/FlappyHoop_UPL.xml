@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	FlappyHoop: cloud save on Android through Google Play Games Services v2 "Saved Games" (snapshots).
+	Also adds AndroidThunkJava_FlappyShowMessage (native AlertDialog, Core/NativeDialog.cpp).
+	Cloud thunks added to GameActivity, called from UCloudSaveSubsystem (CloudSaveSubsystem.cpp):
+	  AndroidThunkJava_FlappyCloudOpen(name, requestId)   -> nativeFlappyCloudLoaded(requestId, ok, bytes)
+	  AndroidThunkJava_FlappyCloudCommit(bytes, requestId) -> nativeFlappyCloudCommitted(requestId, ok)
+	  AndroidThunkJava_FlappyCloudDiscard()
+	The Play Games SDK comes with OnlineSubsystemGooglePlay when "Enable Google Play Support" is on.
+	Without it, the thunks just report failure.
+	Play Console: Play Games Services > Configuration > turn ON "Saved games".
+-->
+<root xmlns:android="http://schemas.android.com/apk/res/android">
+	<init>
+		<setBoolFromProperty result="bFlappyGooglePlay" ini="Engine" section="/Script/AndroidRuntimeSettings.AndroidRuntimeSettings" property="bEnableGooglePlaySupport" default="false"/>
+	</init>
+
+	<gameActivityClassAdditions>
+		<if condition="bFlappyGooglePlay">
+			<true>
+				<insert>
+	// ---- FlappyHoop cloud save (Google Play Games Saved Games) ----
+	private com.google.android.gms.games.snapshot.Snapshot FlappyCloudSnapshot = null;
+
+	public void AndroidThunkJava_FlappyCloudOpen(final String Name, final long RequestId)
+	{
+		FlappyCloudOpen(Name, RequestId, 0);
+	}
+
+	private void FlappyCloudOpen(final String Name, final long RequestId, final int Attempt)
+	{
+		final com.google.android.gms.games.SnapshotsClient Client = com.google.android.gms.games.PlayGames.getSnapshotsClient(this);
+		Client.open(Name, true, com.google.android.gms.games.SnapshotsClient.RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED)
+			.addOnCompleteListener(Task ->
+			{
+				if (!Task.isSuccessful())
+				{
+					Log.debug("[FlappyCloud] open failed: " + Task.getException());
+					nativeFlappyCloudLoaded(RequestId, false, null);
+					return;
+				}
+
+				com.google.android.gms.games.SnapshotsClient.DataOrConflict&lt;com.google.android.gms.games.snapshot.Snapshot&gt; Result = Task.getResult();
+				if (Result.isConflict())
+				{
+					// The policy normally resolves conflicts itself; if one still comes back, keep the newest and reopen.
+					com.google.android.gms.games.SnapshotsClient.SnapshotConflict Conflict = Result.getConflict();
+					if (Conflict == null || Attempt &gt;= 3)
+					{
+						nativeFlappyCloudLoaded(RequestId, false, null);
+						return;
+					}
+					Client.resolveConflict(Conflict.getConflictId(), Conflict.getSnapshot())
+						.addOnCompleteListener(ResolveTask -> FlappyCloudOpen(Name, RequestId, Attempt + 1));
+					return;
+				}
+
+				com.google.android.gms.games.snapshot.Snapshot Snapshot = Result.getData();
+				byte[] Data = null;
+				try
+				{
+					Data = Snapshot.getSnapshotContents().readFully();
+				}
+				catch (java.io.IOException e)
+				{
+					Log.debug("[FlappyCloud] read failed: " + e);
+					Client.discardAndClose(Snapshot);
+					nativeFlappyCloudLoaded(RequestId, false, null);
+					return;
+				}
+
+				if (FlappyCloudSnapshot != null)
+				{
+					Client.discardAndClose(FlappyCloudSnapshot);
+				}
+				FlappyCloudSnapshot = Snapshot;
+				nativeFlappyCloudLoaded(RequestId, true, Data);
+			});
+	}
+
+	public void AndroidThunkJava_FlappyCloudCommit(final byte[] Data, final long RequestId)
+	{
+		final com.google.android.gms.games.snapshot.Snapshot Snapshot = FlappyCloudSnapshot;
+		FlappyCloudSnapshot = null;
+		if (Snapshot == null)
+		{
+			nativeFlappyCloudCommitted(RequestId, false);
+			return;
+		}
+
+		com.google.android.gms.games.SnapshotsClient Client = com.google.android.gms.games.PlayGames.getSnapshotsClient(this);
+		Snapshot.getSnapshotContents().writeBytes(Data);
+		com.google.android.gms.games.snapshot.SnapshotMetadataChange Change =
+			new com.google.android.gms.games.snapshot.SnapshotMetadataChange.Builder()
+				.setDescription("Flappy Hoop progress")
+				.build();
+		Client.commitAndClose(Snapshot, Change)
+			.addOnCompleteListener(Task ->
+			{
+				if (!Task.isSuccessful())
+				{
+					Log.debug("[FlappyCloud] commit failed: " + Task.getException());
+				}
+				nativeFlappyCloudCommitted(RequestId, Task.isSuccessful());
+			});
+	}
+
+	public void AndroidThunkJava_FlappyCloudDiscard()
+	{
+		if (FlappyCloudSnapshot != null)
+		{
+			com.google.android.gms.games.PlayGames.getSnapshotsClient(this).discardAndClose(FlappyCloudSnapshot);
+			FlappyCloudSnapshot = null;
+		}
+	}
+				</insert>
+			</true>
+			<false>
+				<insert>
+	// ---- FlappyHoop cloud save: Google Play support is off, so there is no cloud ----
+	public void AndroidThunkJava_FlappyCloudOpen(final String Name, final long RequestId)
+	{
+		nativeFlappyCloudLoaded(RequestId, false, null);
+	}
+
+	public void AndroidThunkJava_FlappyCloudCommit(final byte[] Data, final long RequestId)
+	{
+		nativeFlappyCloudCommitted(RequestId, false);
+	}
+
+	public void AndroidThunkJava_FlappyCloudDiscard()
+	{
+	}
+				</insert>
+			</false>
+		</if>
+		<insert>
+	// ---- FlappyHoop native message popup (FlappyNativeDialog::Show) ----
+	public void AndroidThunkJava_FlappyShowMessage(final String Title, final String Message, final String ButtonText)
+	{
+		runOnUiThread(() ->
+		{
+			if (isFinishing())
+			{
+				return;
+			}
+			try
+			{
+				new android.app.AlertDialog.Builder(this)
+					.setTitle(Title)
+					.setMessage(Message)
+					.setPositiveButton(ButtonText, null)
+					.show();
+			}
+			catch (Exception e)
+			{
+				Log.debug("[FlappyDialog] could not show the message: " + e);
+			}
+		});
+	}
+
+	public native void nativeFlappyCloudLoaded(long RequestId, boolean bSuccess, byte[] Data);
+	public native void nativeFlappyCloudCommitted(long RequestId, boolean bSuccess);
+		</insert>
+	</gameActivityClassAdditions>
+</root>

@@ -39,6 +39,9 @@ public:
 
 	FOnBalanceChanged OnBalanceChanged;
 
+	/** Re-broadcasts the current balance (after the save was replaced, e.g. by a cloud restore). */
+	void BroadcastBalance();
+
 private:
 
 	USaveSubsystem* GetSave() const;

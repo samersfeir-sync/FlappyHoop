@@ -94,6 +94,8 @@ void USaveSubsystem::Save(const FUserProgression& NewProgression)
 		SaveGame->UserProgression = Progression;
 		WriteToDisk();
 	}
+
+	OnProgressionSaved.Broadcast(Progression);
 }
 
 void USaveSubsystem::WriteToDisk()

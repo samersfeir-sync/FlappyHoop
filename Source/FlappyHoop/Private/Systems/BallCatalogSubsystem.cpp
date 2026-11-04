@@ -7,6 +7,7 @@
 #include "Systems/SaveSubsystem.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
+#include "Misc/DateTime.h"
 
 UBallCatalogSubsystem* UBallCatalogSubsystem::Get(const UObject* WorldContextObject)
 {
@@ -104,6 +105,7 @@ bool UBallCatalogSubsystem::Unlock(EBallType BallType)
 	FUserProgression Progression = Save->GetProgression();
 	Progression.OwnedBalls.AddUnique(BallType);
 	Progression.BallType = BallType;
+	Progression.BallSelectedAt = FDateTime::UtcNow().ToUnixTimestamp();
 	Save->Save(Progression);
 
 	OnBallsChanged.Broadcast();
@@ -122,11 +124,18 @@ bool UBallCatalogSubsystem::Select(EBallType BallType)
 	{
 		FUserProgression Progression = Save->GetProgression();
 		Progression.BallType = BallType;
+		Progression.BallSelectedAt = FDateTime::UtcNow().ToUnixTimestamp();
 		Save->Save(Progression);
 	}
 
 	OnBallsChanged.Broadcast();
 	return true;
+}
+
+void UBallCatalogSubsystem::RefreshFromSave()
+{
+	ValidateSave();
+	OnBallsChanged.Broadcast();
 }
 
 void UBallCatalogSubsystem::ValidateSave()

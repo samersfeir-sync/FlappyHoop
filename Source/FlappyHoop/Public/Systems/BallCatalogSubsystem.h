@@ -48,6 +48,9 @@ public:
 
 	FOnBallsChanged OnBallsChanged;
 
+	/** The save was replaced (cloud restore): re-validate the selection and refresh the shop and ball. */
+	void RefreshFromSave();
+
 private:
 
 	USaveSubsystem* GetSave() const;

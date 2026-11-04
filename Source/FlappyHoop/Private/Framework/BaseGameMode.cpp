@@ -12,6 +12,7 @@
 #include "Systems/SaveSubsystem.h"
 #include "Systems/AdsSubsystem.h"
 #include "Systems/BallCatalogSubsystem.h"
+#include "Systems/CloudSaveSubsystem.h"
 #include "UI/HUD/GameWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
@@ -80,6 +81,12 @@ void ABaseGameMode::BeginPlay()
 		Catalog->OnBallsChanged.AddUObject(this, &ABaseGameMode::ApplyBallSettings);
 	}
 
+	// A cloud restore can raise the saved high scores: pick them up and refresh the menu.
+	if (UCloudSaveSubsystem* CloudSave = UCloudSaveSubsystem::Get(this))
+	{
+		CloudSave->OnCloudProgressApplied.AddUObject(this, &ABaseGameMode::ReloadHighScores);
+	}
+
 	GameWidgetInstance = CreateWidget<UGameWidget>(World, GameWidgetClass);
 	if (GameWidgetInstance)
 	{
@@ -100,6 +107,11 @@ void ABaseGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UBallCatalogSubsystem* Catalog = UBallCatalogSubsystem::Get(this))
 	{
 		Catalog->OnBallsChanged.RemoveAll(this);
+	}
+
+	if (UCloudSaveSubsystem* CloudSave = UCloudSaveSubsystem::Get(this))
+	{
+		CloudSave->OnCloudProgressApplied.RemoveAll(this);
 	}
 
 	if (UWorld* World = GetWorld())
@@ -445,6 +457,16 @@ void ABaseGameMode::NotifyBallLanded()
 // ---------------------------------------------------------------------------------------------------------------------
 // Ball / collectibles
 // ---------------------------------------------------------------------------------------------------------------------
+
+void ABaseGameMode::ReloadHighScores()
+{
+	if (const USaveSubsystem* Save = USaveSubsystem::Get(this))
+	{
+		HighScoreEasy = FMath::Max(HighScoreEasy, Save->GetProgression().HighScore);
+		HighScoreHard = FMath::Max(HighScoreHard, Save->GetProgression().HighScoreHard);
+	}
+	OnDifficultyChanged.Broadcast(Difficulty); // the main menu re-reads the high score
+}
 
 void ABaseGameMode::ApplyBallSettings()
 {

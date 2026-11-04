@@ -4,6 +4,7 @@
 #include "UI/Popups/SettingsWidget.h"
 #include "Components/Button.h"
 #include "Components/Border.h"
+#include "Components/SizeBox.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundClass.h"
 #include "Sound/SoundMix.h"
@@ -11,6 +12,9 @@
 #include "Systems/FlappyAudioSubsystem.h"
 #include "Systems/AdsSubsystem.h"
 #include "Systems/StoreSubsystem.h"
+#include "Systems/CloudSaveSubsystem.h"
+#include "Components/TextBlock.h"
+#include "Core/NativeDialog.h"
 
 void USettingsWidget::NativeConstruct()
 {
@@ -48,7 +52,9 @@ void USettingsWidget::NativeConstruct()
 
 	if (RestorePurchasesButton)
 	{
-		RestorePurchasesButton->SetVisibility(UStoreSubsystem::ShouldShowRestoreButton() ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		// Always visible (so the layout can be checked anywhere); disabled where there is nothing to restore.
+		RestorePurchasesButton->SetVisibility(ESlateVisibility::Visible);
+		RestorePurchasesButton->SetIsEnabled(CanRestore());
 		RestorePurchasesButton->OnClicked.AddUniqueDynamic(this, &USettingsWidget::RestorePurchasesClicked);
 
 		if (UStoreSubsystem* Store = UStoreSubsystem::Get(this))
@@ -56,6 +62,13 @@ void USettingsWidget::NativeConstruct()
 			Store->OnPurchasesRestored.AddUObject(this, &USettingsWidget::HandlePurchasesRestored);
 		}
 	}
+
+	if (UCloudSaveSubsystem* CloudSave = UCloudSaveSubsystem::Get(this))
+	{
+		CloudSave->OnSyncFinished.AddUObject(this, &USettingsWidget::HandleCloudSyncFinished);
+	}
+
+	SetRestoreStatus(FText::GetEmpty());
 }
 
 void USettingsWidget::NativeDestruct()
@@ -70,46 +83,138 @@ void USettingsWidget::NativeDestruct()
 		Store->OnPurchasesRestored.RemoveAll(this);
 	}
 
+	if (UCloudSaveSubsystem* CloudSave = UCloudSaveSubsystem::Get(this))
+	{
+		CloudSave->OnSyncFinished.RemoveAll(this);
+	}
+
 	Super::NativeDestruct();
+}
+
+bool USettingsWidget::CanRestore() const
+{
+	const UCloudSaveSubsystem* CloudSave = UCloudSaveSubsystem::Get(this);
+	return UStoreSubsystem::ShouldShowRestoreButton() || (CloudSave && CloudSave->IsSupported());
 }
 
 void USettingsWidget::RestorePurchasesClicked()
 {
-	if (!IsOpen() || !RestorePurchasesButton)
+	if (!IsOpen() || !RestorePurchasesButton || !CanRestore() || bWaitingForStoreRestore || bWaitingForCloudRestore)
 	{
 		return;
 	}
 
-	if (UStoreSubsystem* Store = UStoreSubsystem::Get(this))
+	UStoreSubsystem* Store = UStoreSubsystem::Get(this);
+	UCloudSaveSubsystem* CloudSave = UCloudSaveSubsystem::Get(this);
+	const bool bCloud = CloudSave && CloudSave->IsSupported();
+	if (!Store && !bCloud)
 	{
-		RestorePurchasesButton->SetIsEnabled(false); // re-enabled when the restore answers
-		Store->RestorePurchases();
+		return;
+	}
+
+	// Set both flags before starting either: the store can answer synchronously (Android).
+	bWaitingForStoreRestore = Store != nullptr;
+	bWaitingForCloudRestore = bCloud;
+	CloudRestoreResult = static_cast<uint8>(EFlappyCloudSyncResult::Unsupported);
+
+	RestorePurchasesButton->SetIsEnabled(false); // re-enabled when both answers are in
+	SetRestoreStatus(RestoringText);
+
+	if (bCloud)
+	{
+		CloudSave->RestoreNow(); // gems, coins, balls, high scores (signs in to Google Play Games if needed)
+	}
+	if (Store)
+	{
+		Store->RestorePurchases(); // "remove ads"
 	}
 }
 
 void USettingsWidget::HandlePurchasesRestored(bool bAdsRemoved)
 {
+	if (!bWaitingForStoreRestore)
+	{
+		return;
+	}
+	bWaitingForStoreRestore = false;
+	FinishRestoreIfDone();
+}
+
+void USettingsWidget::HandleCloudSyncFinished(EFlappyCloudSyncResult Result)
+{
+	if (!bWaitingForCloudRestore)
+	{
+		return;
+	}
+	bWaitingForCloudRestore = false;
+	CloudRestoreResult = static_cast<uint8>(Result);
+	FinishRestoreIfDone();
+}
+
+void USettingsWidget::FinishRestoreIfDone()
+{
+	if (bWaitingForStoreRestore || bWaitingForCloudRestore)
+	{
+		return;
+	}
+
 	if (RestorePurchasesButton)
 	{
-		RestorePurchasesButton->SetIsEnabled(true);
+		RestorePurchasesButton->SetIsEnabled(CanRestore());
+	}
+
+	FText Result;
+	switch (static_cast<EFlappyCloudSyncResult>(CloudRestoreResult))
+	{
+	case EFlappyCloudSyncResult::Synced:          Result = RestoredText; break;
+	case EFlappyCloudSyncResult::NotSignedIn:     Result = NotSignedInText; break;
+	case EFlappyCloudSyncResult::NoICloudAccount: Result = NoICloudText; break;
+	case EFlappyCloudSyncResult::Failed:          Result = RestoreFailedText; break;
+	default:                                      Result = PurchasesRestoredText; break;
+	}
+
+	// Phones: the system popup (AlertDialog / UIAlertController). Editor/desktop: the optional status text.
+	if (FlappyNativeDialog::IsSupported())
+	{
+		SetRestoreStatus(FText::GetEmpty());
+		FlappyNativeDialog::Show(RestoreDialogTitle, Result, RestoreDialogButton);
+	}
+	else
+	{
+		SetRestoreStatus(Result);
+	}
+}
+
+void USettingsWidget::SetRestoreStatus(const FText& Text)
+{
+	if (RestoreStatusText)
+	{
+		RestoreStatusText->SetText(Text);
+		RestoreStatusText->SetVisibility(Text.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 	}
 }
 
 void USettingsWidget::OnPopupOpening()
 {
 	UpdatePrivacyButton();
+
+	// Don't show an old restore result the next time Settings opens.
+	if (!bWaitingForStoreRestore && !bWaitingForCloudRestore)
+	{
+		SetRestoreStatus(FText::GetEmpty());
+	}
 }
 
 void USettingsWidget::UpdatePrivacyButton()
 {
-	if (!PrivacyButton)
+	if (!PrivacyButton || !PrivacySizeBox)
 	{
 		return;
 	}
 
 	const UAdsSubsystem* Ads = UAdsSubsystem::Get(this);
 	const bool bShow = Ads && Ads->IsPrivacyOptionsRequired();
-	PrivacyButton->SetVisibility(bShow ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	PrivacySizeBox->SetVisibility(bShow ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 }
 
 void USettingsWidget::PrivacyButtonClicked()

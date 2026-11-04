@@ -37,6 +37,10 @@ struct FUserProgression
     UPROPERTY(EditDefaultsOnly, Category = "Preference")
     EBallType BallType = EBallType::Basketball;
 
+    /** When BallType was last chosen (Unix seconds, 0 = never). Cloud sync keeps the most recent selection. */
+    UPROPERTY()
+    int64 BallSelectedAt = 0;
+
     /**
      * OLD format (save version 0): the full shop list with textures/prices. Converted into OwnedBalls on load
      * and then emptied. On the save-game Blueprint's defaults it is still the fallback shop list until a
@@ -57,4 +61,17 @@ struct FUserProgression
 
     UPROPERTY(EditDefaultsOnly, Category = "Ads")
     bool bNoAds = false;
+
+    // --- Cloud save bookkeeping (UCloudSaveSubsystem) ---
+
+    /** True once this device has merged with the cloud copy at least once. */
+    UPROPERTY()
+    bool bCloudSynced = false;
+
+    /** Coins / gems the cloud was last known to hold. Local changes since then are added on the next sync. */
+    UPROPERTY()
+    int32 CloudBaseCoins = 0;
+
+    UPROPERTY()
+    int32 CloudBaseGems = 0;
 };

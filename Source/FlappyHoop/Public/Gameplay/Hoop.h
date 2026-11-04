@@ -84,6 +84,10 @@ private:
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
     UFUNCTION()
+    void OnScoreCylinderEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+    UFUNCTION()
     void OnRimDetectorBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -100,14 +104,30 @@ private:
 
     bool IsValidScoringAttempt(AActor* Ball, FString& OutReason) const;
 
+    /** Validates and awards a ScoreCylinder touch. Rejections are logged/acted on only if bFromOverlapEvent. */
+    void TryScore(AActor* Ball, bool bFromOverlapEvent);
+
+    /** Marks Ball as "coming down through the rim" (or refreshes the mark) if it's inside RimDetector, above the score zone and falling relative to the hoop. */
+    void TryMarkRimEntry(AActor* Ball);
+
+    /** Ball's vertical velocity relative to the (possibly drifting) hoop. */
+    double GetRelativeVelocityZ(const AActor* Ball) const;
+
     void ResetBallTracking();
 
     /** A ball that dropped into RimDetector: when, and where its centre was. */
     struct FRimEntry
     {
+        /** Last time the drop was confirmed (refreshed while the ball stays in the rim falling). */
         double Time = 0.0;
-        double BallZ = 0.0;
+        /** First time it dropped in (for swish detection). */
+        double FirstTime = 0.0;
+        /** Ball centre height above ScoreCylinder's centre when last confirmed (relative, so hoop drift doesn't matter). */
+        double HeightAboveZone = 0.0;
     };
+
+    /** The ball's drop mark, or null if it has none or it's older than RimToScoreMaxTime. */
+    const FRimEntry* FindFreshRimEntry(const AActor* Ball) const;
 
     /**
      * Balls currently "coming down through the rim". Removed when they score, leave RimDetector going up,
@@ -115,6 +135,16 @@ private:
      * Weak keys so a destroyed actor can't leave a dangling entry.
      */
     TMap<TWeakObjectPtr<AActor>, FRimEntry> RimEntries;
+
+    /** Balls currently overlapping RimDetector. */
+    TSet<TWeakObjectPtr<AActor>> BallsInRim;
+
+    /** Balls that touched ScoreCylinder going up (came from below): can't get a rim mark until they're clear of the hoop. */
+    TSet<TWeakObjectPtr<AActor>> CameFromBelow;
+
+    /** Hoop's vertical speed this frame (cm/s), from the drift. */
+    double HoopVelocityZ = 0.0;
+    bool bDriftActive = false;
 
     /** World time of the last rim/backboard contact (for swish detection). */
     double LastRimContactTime = -1000.0;

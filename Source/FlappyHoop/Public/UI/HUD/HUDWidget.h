@@ -66,6 +66,17 @@ private:
 	UPROPERTY(meta = (BindWidgetAnimOptional), Transient)
 	TObjectPtr<UWidgetAnimation> LevelUpAnimation;
 
+	/** Optional: "Easy" / "Hard" for the current run. */
+	UPROPERTY(meta = (BindWidgetOptional)) TObjectPtr<UTextBlock> DifficultyText;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Difficulty")
+	FText EasyLabel = NSLOCTEXT("HUD", "Easy", "Easy");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Difficulty")
+	FText HardLabel = NSLOCTEXT("HUD", "Hard", "Hard");
+
+	void UpdateDifficultyText();
+
 	/** {0} = level number. */
 	UPROPERTY(EditDefaultsOnly, Category = "Level")
 	FText LevelFormat = NSLOCTEXT("HUD", "LevelFormat", "Level {0}");

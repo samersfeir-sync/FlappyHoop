@@ -24,7 +24,13 @@ void UMainMenuWidget::NativeConstruct()
 	if (LeaderboardButton)
 	{
 		LeaderboardButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnLeaderboardClicked);
-		LeaderboardButton->SetVisibility(ULeaderboardSubsystem::IsSupported() ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		// Always shown (also in the editor/desktop, where pressing it does nothing) so the layout can be checked anywhere.
+		LeaderboardButton->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (LeaderboardModeText)
+	{
+		LeaderboardModeText->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 
 	if (EasyButton) EasyButton->OnClicked.AddUniqueDynamic(this, &UMainMenuWidget::OnEasyClicked);
@@ -91,6 +97,7 @@ void UMainMenuWidget::ShowDifficulty()
 	if (EasyButton) EasyButton->SetIsEnabled(Mode != EDifficultyMode::Easy);
 	if (HardButton) HardButton->SetIsEnabled(Mode != EDifficultyMode::Hard);
 	if (DifficultyText) DifficultyText->SetText(Mode == EDifficultyMode::Hard ? HardLabel : EasyLabel);
+	if (LeaderboardModeText) LeaderboardModeText->SetText(Mode == EDifficultyMode::Hard ? LeaderboardHardLabel : LeaderboardEasyLabel);
 
 	OnDifficultyShown(Mode);
 }

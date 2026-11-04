@@ -18,7 +18,7 @@ class FLAPPYHOOP_API UGameOverWidget : public UPopupWidget
 
 public:
 
-	/** The UI root, which handles Quit and Restart. */
+	/** The UI root, which handles Home and Restart. */
 	void SetGameWidget(UGameWidget* NewGameWidget) { GameWidget = NewGameWidget; }
 
 protected:
@@ -29,10 +29,13 @@ protected:
 private:
 
 	UFUNCTION()
-	void OnQuitClicked();
+	void OnHomeClicked();
 
 	UFUNCTION()
 	void OnRestartClicked();
+
+	UFUNCTION()
+	void OnLeaderboardClicked();
 
 	void SetHighScoreText(int32 HighScore);
 	void SetCurrentScoreText(int32 Score);
@@ -52,10 +55,24 @@ private:
 	TObjectPtr<UTextBlock> HighScoreText;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> QuitButton;
+	TObjectPtr<UButton> HomeButton;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> RestartButton;
+
+	/** Optional: opens the leaderboard of the difficulty just played. Hidden where there are no leaderboards (editor, desktop). */
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UButton> LeaderboardButton;
+
+	/** Optional: "EASY" / "HARD" badge for LeaderboardButton. */
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> LeaderboardModeText;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Leaderboard")
+	FText LeaderboardEasyLabel = NSLOCTEXT("GameOver", "LeaderboardEasy", "EASY");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Leaderboard")
+	FText LeaderboardHardLabel = NSLOCTEXT("GameOver", "LeaderboardHard", "HARD");
 
 	UPROPERTY(Transient)
 	TObjectPtr<UGameWidget> GameWidget = nullptr;

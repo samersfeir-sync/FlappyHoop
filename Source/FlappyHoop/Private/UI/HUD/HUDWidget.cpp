@@ -33,6 +33,11 @@ void UHUDWidget::NativeConstruct()
 		LevelText->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 
+	if (DifficultyText)
+	{
+		DifficultyText->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+
 	if (UEconomySubsystem* Economy = UEconomySubsystem::Get(this))
 	{
 		Economy->OnBalanceChanged.AddUObject(this, &UHUDWidget::OnBalanceChanged);
@@ -94,6 +99,16 @@ void UHUDWidget::ResetForNewRun()
 	{
 		LevelText->SetText(FText::Format(LevelFormat, FText::AsNumber(1)));
 	}
+
+	UpdateDifficultyText();
+}
+
+void UHUDWidget::UpdateDifficultyText()
+{
+	if (DifficultyText && GameMode)
+	{
+		DifficultyText->SetText(GameMode->GetDifficulty() == EDifficultyMode::Hard ? HardLabel : EasyLabel);
+	}
 }
 
 void UHUDWidget::OnLevelChanged(int32 Level)
@@ -121,6 +136,12 @@ void UHUDWidget::OnRunPhaseChanged(EGameStateEnum OldPhase, EGameStateEnum NewPh
 {
 	// Run coins are banked at game over; stop adding them on top.
 	RefreshTotals();
+
+	// The mode is picked in the menu, so refresh it when a run starts.
+	if (NewPhase == EGameStateEnum::Playing)
+	{
+		UpdateDifficultyText();
+	}
 }
 
 void UHUDWidget::OnPointScored()

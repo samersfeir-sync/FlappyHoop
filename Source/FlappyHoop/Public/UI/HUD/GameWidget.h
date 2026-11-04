@@ -38,9 +38,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void RequestQuit();
 
-	/** Home / Restart: ends the run and goes back to the menu. */
+	/** Home (pause menu, game over): ends the run and goes back to the menu. */
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ReturnToMainMenu();
+
+	/** Restart on the game-over panel: ends the run and starts a new one right away, skipping the menu. */
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void RestartGame();
 
 	/** Pauses the game and opens the pause menu. */
 	UFUNCTION(BlueprintCallable, Category = "UI")

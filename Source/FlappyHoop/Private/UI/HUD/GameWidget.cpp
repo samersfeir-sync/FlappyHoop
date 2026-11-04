@@ -234,6 +234,14 @@ void UGameWidget::ReturnToMainMenu()
 	}
 }
 
+void UGameWidget::RestartGame()
+{
+	if (GameMode)
+	{
+		GameMode->RestartRun(); // the UI follows through OnRunPhaseChanged (MainMenu -> Playing in one frame)
+	}
+}
+
 void UGameWidget::PauseGame()
 {
 	UGameplayStatics::SetGamePaused(this, true);

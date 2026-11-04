@@ -209,6 +209,12 @@ void ULeaderboardSubsystem::SubmitScore(int32 Score, EDifficultyMode Mode)
 
 void ULeaderboardSubsystem::ShowLeaderboard(EDifficultyMode Mode)
 {
+	// Editor / desktop: no game service, the button does nothing.
+	if (!IsSupported())
+	{
+		return;
+	}
+
 	if (!bSignedIn)
 	{
 		bShowLeaderboardAfterSignIn = true;

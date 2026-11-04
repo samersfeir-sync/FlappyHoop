@@ -223,6 +223,18 @@ void ABaseGameMode::ReturnToMenu()
 	}
 }
 
+void ABaseGameMode::RestartRun()
+{
+	if (CurrentGameState != EGameStateEnum::GameOver)
+	{
+		return;
+	}
+
+	// Same cleanup as going Home (reset broadcast, interstitial when due), then straight back in.
+	ReturnToMenu();
+	StartRun();
+}
+
 void ABaseGameMode::EndGame()
 {
 	if (CurrentGameState != EGameStateEnum::Playing && CurrentGameState != EGameStateEnum::SecondChance)

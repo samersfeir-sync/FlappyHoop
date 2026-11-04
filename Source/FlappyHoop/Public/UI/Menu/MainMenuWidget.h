@@ -79,6 +79,18 @@ private:
 	/** Optional: "Easy" / "Hard". HighScoreText always shows the selected mode's best. */
 	UPROPERTY(meta = (BindWidgetOptional)) TObjectPtr<UTextBlock> DifficultyText;
 
+	/**
+	 * Optional badge on/near LeaderboardButton: "EASY" / "HARD" (LeaderboardEasyLabel / LeaderboardHardLabel),
+	 * so players see which board the button opens. Hidden together with the button where there are no leaderboards.
+	 */
+	UPROPERTY(meta = (BindWidgetOptional)) TObjectPtr<UTextBlock> LeaderboardModeText;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Difficulty")
+	FText LeaderboardEasyLabel = NSLOCTEXT("MainMenu", "LeaderboardEasy", "EASY");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Difficulty")
+	FText LeaderboardHardLabel = NSLOCTEXT("MainMenu", "LeaderboardHard", "HARD");
+
 	UPROPERTY(EditDefaultsOnly, Category = "Difficulty")
 	FText EasyLabel = NSLOCTEXT("MainMenu", "Easy", "Easy");
 

@@ -91,8 +91,11 @@ public:
 	/** MainMenu -> Playing. */
 	void StartRun();
 
-	/** Any phase -> MainMenu (Home button, Restart on the game-over panel). */
+	/** Any phase -> MainMenu (Home button on the pause menu and game-over panel). */
 	void ReturnToMenu();
+
+	/** GameOver -> Playing: resets the run and starts a new one with the same difficulty (Restart on the game-over panel). */
+	void RestartRun();
 
 	/** Playing/SecondChance -> GameOver. Banks coins and the high score. Safe to call more than once. */
 	void EndGame();
